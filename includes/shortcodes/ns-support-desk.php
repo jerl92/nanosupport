@@ -159,6 +159,7 @@ function ns_support_desk_page() {
 					$meta_data_additional_status = get_post_meta( $post->ID, '_ns_internal_additional_status', true );
 
 					$NSECommerce = new NSECommerce();
+					$product_icon = '';
 					if( $NSECommerce->ecommerce_enabled() ) {
 						$product_info = $NSECommerce->get_product_info($ticket_meta['product'], $ticket_meta['receipt']);
 						$product_icon = false !== $product_info ? '&nbsp;<i class="ns-icon-cart ns-small" aria-hidden="true"></i>' : '';
