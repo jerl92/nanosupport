@@ -22,6 +22,8 @@ add_filter( 'comment_notification_recipients', 'ns_disable_wp_comment_notificati
 //Then, execute response notification
 add_action( 'wp_insert_comment', 'nanosupport_email_on_ticket_response', PHP_INT_MAX, 2 );
 
+add_action( 'pre_post_update', 'nanosupport_email_on_ticket_update', PHP_INT_MAX, 2);
+
 
 
 /**
@@ -115,18 +117,82 @@ function nanosupport_new_ticket_notification_email( $new_status, $old_status, $p
 
         $email_subhead = __( 'New Ticket Submitted', 'nanosupport' );
 
+        $user_info = get_userdata($post->post_author);
+
         $message = '';
         // Ticket message
         $message = '<p style="margin: 0 0 16px;">'. wp_kses( __( 'A support ticket is submitted and is <strong>Pending</strong>.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
 
         // Ticket title and body content
-        $message .= '<div style="border-left: 5px solid #ccc;padding-top: 10px;padding-left: 20px;padding-bottom: 10px;">';
-            $message .= '<h2 style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_title .'</h2>';
-            $message .= '<p style="margin: 0 0 20px;font-style: italic">'. $post_excerpt .'</p>';
+        $message .= '<div style="padding-top: 10px;padding-bottom: 10px; text-align: center;">';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'company_name', true) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'phone_number', true) .'</p>'; 
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. nl2br( $_POST['ns_ticket_return_adresse'] ) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;"></p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_id .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_title .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_serial_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_issuse'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px; white-space: normal; word-break: break-word;">'. $post->post_content .'</p>';
         $message .= '</div>';
+
 
         // Call-to-action button
         $message .= '<p style="margin: 30px 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'Link to the Ticket', 'nanosupport' ) .'</a></p>';
+        
+        $author_email = $user_info->user_email;
+
+        $to_email = $nanosupport_email_settings['notification_email'];
+        $to_email .= ',';
+        $to_email .= $author_email;
+
+        $notification_email = ns_email(
+            $to_email,
+            $subject,
+            $email_subhead,
+            $message
+        );
+
+        elseif( 'nanosupport' === $post->post_type && '' === $old_status && 'solved' === $new_status ) :
+
+        $ticket_id = $post->ID;
+
+        /**
+         * Generate Dynamic values
+         */
+        $ticket_view_link = get_permalink( $ticket_id );
+        $post_excerpt     = wp_trim_words( $post->post_content, 70, null );
+        
+
+        /* translators: Site title */
+        $subject = sprintf ( __( 'A Ticket Was Closed — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+
+        $email_subhead = __( 'A Ticket Was Closed', 'nanosupport' );
+
+        $user_info = get_userdata($post->post_author);
+
+        $message = '';
+        // Ticket message
+        $message = '<p style="margin: 0 0 16px; text-align: center;">'. wp_kses( __( 'A support ticket is now closed.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
+
+        // Ticket title and body content
+        $message .= '<div style="padding-top: 10px;padding-bottom: 10px; text-align: center;">';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_id .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'company_name', true) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'phone_number', true) .'</p>'; 
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_title .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_serial_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_issuse'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px; white-space: normal; word-break: break-word;">'. $post->post_content .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. nl2br( $_POST['ns_ticket_return_adresse'] ) .'</p>';
+        $message .= '</div>';
+
+        // Call-to-action button
+        $message .= '<p style="margin: 30px 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'Link to the Ticket', 'nanosupport' ) .'</a></p>';
+                
+        $author_email = $user_info->user_email;
 
         $to_email = $nanosupport_email_settings['notification_email'];
 
@@ -379,4 +445,106 @@ function ns_notify_agent_assignment( $user_id, $ticket_id = null ) {
     $agent_email = ns_email( $email, $subject, $email_subhead, $message );
 
     return $agent_email;
+}
+
+/**
+ * Send email when ticket is responded
+ *
+ * Send an email notification to the ticket author if the ticket is
+ * reponded by someone other than them. Send email whether the
+ * ticket is responded regardless from front-end or back end.
+ *
+ * Send an email to the ticket agent notifying ticket modification.
+ *
+ * @since  1.0.0
+ * 
+ * @param  integer $comment_ID    The comment ID.
+ * @param  object $comment_object The comment post object.
+ * ------------------------------------------------------------------------------
+ */
+function nanosupport_email_on_ticket_update( $post ) {
+
+    //Get Email settings from db
+
+    $ticket_id = $post->ID;
+
+    /* translators: Site title */
+    $subject = sprintf ( __( 'Ticket Updated — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+
+    $email_subhead = __( 'Ticket Updated', 'nanosupport' );
+
+    // We unhook this action to prevent an infinite loop
+    remove_action( 'pre_post_update', 'nanosupport_email_on_ticket_update' );
+
+    if( 'nanosupport' !== get_post_type($ticket_id) )
+        return;
+
+
+    $author_id      = get_post_field( 'post_author', $ticket_id );
+    $author_email   = get_the_author_meta( 'user_email', $author_id );
+    $ticket_meta    = ns_get_ticket_meta( $post );
+    $meta_data_additional_status = get_post_meta( $post, '_ns_internal_additional_status', true );
+    $meta_data_traking_number = get_post_meta( $post, '_ns_ticket_traking_number', true );
+    $meta_data_internal_note = get_post_meta( $post, 'ns_internal_note', true );
+
+    // verify if this is an auto save routine. 
+    // If it is our form has not been submitted, so we dont want to do anything
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+        return;
+
+    $ticket_new_response = $_POST['ns_new_response'];
+    $ticket_internal_note = $_POST['ns_internal_note'];
+
+    if (empty($ticket_new_response) && $ticket_internal_note == $meta_data_internal_note ) {
+
+        // Now hook the action
+        // Email Content
+        $message = '';
+
+        // Ticket response content
+        $message .= '<div style="text-align: center;">';
+
+        $message .= '<p style="margin: 0;font-style: italic">'. get_the_title($post) .'</p>';
+
+        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_ticket_serial_number'] .'</p>';
+        
+        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_ticket_issuse'] .'</p>';
+
+        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_internal_rma_number'] .'</p>';
+
+        if ( $_POST['ns_ticket_status'] != $ticket_meta['status']['value']  ) {
+
+            $message .= '<p style="margin: 10px 0 0;">'. __( 'RMA status', 'nanosupport' ) .'</p>';
+
+            $message .= '<p style="margin: 0 0 5px;font-style: italic">'.  $_POST['ns_ticket_status'] .'</p>';
+
+         }
+
+        if ( $_POST['ns_internal_additional_status'] != $meta_data_additional_status  ) {
+
+            $message .= '<p style="margin: 10px 0 0;">'. __( 'RMA additional status', 'nanosupport' ) .'</p>';
+
+            $message .= '<p style="margin: 0 0 5px; font-style: italic">'. $_POST['ns_internal_additional_status'] .'</p>';
+    
+        }
+
+        if ( $_POST['ns_ticket_traking_number'] != $meta_data_traking_number ) {
+
+            $message .= '<p style="margin: 10px 0 0;">'. __( 'Nationex traking number', 'nanosupport' ) .'</p>';
+
+            $message .= '<p style="margin: 0 0 5px; font-style: italic">'. $_POST['ns_ticket_traking_number'] .'</p>';
+
+        }
+
+        $message .= '</div>';
+
+        $message .= '<p style="margin: 0 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
+        
+        // Send the email
+        ns_email( $author_email, $subject, $email_subhead, $message );
+
+        add_action('pre_post_update', 'nanosupport_email_on_ticket_update');
+
+    }
+
 }

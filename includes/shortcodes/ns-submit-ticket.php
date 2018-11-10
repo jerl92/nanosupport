@@ -79,491 +79,257 @@ function ns_submit_support_ticket() {
 		<div class="ns-row">
 			<div class="ns-col-md-12">
 
-				<form class="ns-form-horizontal" method="post" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>"<?php
-					/**
-					 * -----------------------------------------------------------------------
-					 * HOOK : ACTION HOOK
-					 * nanosupport_new_ticket_form_tag
-					 *
-					 * Fires inside the Add New Ticket Form tag.
-					 *
-					 * @since  1.0.0
-					 *
-					 * 10	- ns_change_form_type_for_rich_media()
-					 * -----------------------------------------------------------------------
-					 */
-					do_action( 'nanosupport_new_ticket_form_tag' );
-					?>>
+				<?php if( is_user_logged_in() ) { ?>
 
-					<!-- SUBJECT -->
-					<div class="ns-form-group">
-						<label for="ns-ticket-subject" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-							<?php esc_html_e( 'Subject', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-						</label>
-						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-							<?php echo ns_tooltip( 'ns-subject', esc_html__( 'Write down a self-descriptive brief subject to the ticket', 'nanosupport' ), 'bottom' ); ?>
-						</div>
-						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-							<input type="text" class="ns-form-control" name="ns_ticket_subject" id="ns-ticket-subject" placeholder="<?php esc_attr_e( 'Subject in brief', 'nanosupport' ); ?>" value="<?php echo !empty($_POST['ns_ticket_subject']) ? stripslashes_deep( $_POST['ns_ticket_subject'] ) : ''; ?>" aria-describedby="ns-subject" required>
-						</div>
-					</div> <!-- /.ns-form-group -->
-
-					<!-- TICKET DETAILS -->
-					<div class="ns-form-group">
-						<label for="ns-ticket-details" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-							<?php esc_html_e( 'Details', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-						</label>
-						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-							<?php
-							/**
-							 * WP Editor array.
-							 * Declare the array here, so that we can conditionally
-							 * display tooltip content.
-							 * @var array
-							 * ...
-							 */
-							$wp_editor_array = array(
-												'media_buttons'		=> false,
-												'textarea_name'		=> 'ns_ticket_details',
-												'textarea_rows'		=> 10,
-												'editor_class'		=> 'ns-form-control',
-												'quicktags'			=> false,
-												'tinymce'			=> true
-											);
-
-							/**
-						     * -----------------------------------------------------------------------
-						     * HOOK : FILTER HOOK
-						     * ns_wp_editor_specs
-						     * 
-						     * Hook to moderate the specs of the wp_editor().
-						     *
-						     * @since  1.0.0
-						     * -----------------------------------------------------------------------
-						     */
-							$wp_editor_specs = apply_filters( 'ns_wp_editor_specs', $wp_editor_array );
-
-							$character_limit = ns_is_character_limit();
-							if( $character_limit ) {
-								/* translators: character limit to the ticket content, in number */
-								$content_tooltip_msg = sprintf( esc_html__( 'Write down your issue in details... At least %s characters is a must.', 'nanosupport' ), $character_limit );
-								// allowed HTML tags are not necessary if rich text editor is disabled.
-								if( $wp_editor_specs['tinymce'] != true ) {
-									$content_tooltip_msg .= '<br><small>';
-										/* translators: allowed HTML tags to the plugin */
-										$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
-									$content_tooltip_msg .= '</small>';
-								}
-
-								echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
-							} else {
-								$content_tooltip_msg = esc_html__( 'Write down your issue in details...', 'nanosupport' );
-								// allowed HTML tags are not necessary if rich text editor is disabled.
-								if( $wp_editor_specs['tinymce'] != true ) {
-									$content_tooltip_msg .= '<br><small>';
-										/* translators: allowed HTML tags to the plugin */
-										$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
-									$content_tooltip_msg .= '</small>';
-								}
-
-								echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
-							}
-							?>
-						</div>
-						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-							<?php
-							$ticket_content = !empty($_POST['ns_ticket_details']) ? $_POST['ns_ticket_details'] : '';
-
-							// initiate the editor.
-							wp_editor(
-									$content   = $ticket_content,
-									$editor_id = 'ns-ticket-details',
-									$wp_editor_specs
-								);
-							?>
-						</div>
-					</div> <!-- /.ns-form-group -->
-
-					<?php
-					$display_priority = isset($ns_general_settings['is_priority_visible']) ? absint($ns_general_settings['is_priority_visible']) : false;
-
-					if( $display_priority  ) { ?>
-
-						<!-- TICKET PRIORITY -->
-						<div class="ns-form-group">
-							<label for="ns-ticket-priority" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-								<?php esc_html_e( 'Priority', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-							</label>
-							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-								<?php echo ns_tooltip( 'ns-priority', esc_html__( 'Choose the priority of the issue', 'nanosupport' ), 'bottom' ); ?>
-							</div>
-							<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12 ns-form-inline">
-								<?php $submit_val = !empty($_POST['ns_ticket_priority']) ? $_POST['ns_ticket_priority'] : 'low'; ?>
-								<select class="ns-form-control" name="ns_ticket_priority" id="ns-ticket-priority" aria-describedby="ns-priority" required>
-									<option value="" <?php selected( $submit_val, '' ); ?>><?php esc_html_e( 'Select a priority', 'nanosupport' ); ?></option>
-									<option value="low" <?php selected( $submit_val, 'low' ); ?>><?php esc_html_e( 'Low', 'nanosupport' ); ?></option>
-									<option value="medium" <?php selected( $submit_val, 'medium' ); ?>><?php esc_html_e( 'Medium', 'nanosupport' ); ?></option>
-									<option value="high" <?php selected( $submit_val, 'high' ); ?>><?php esc_html_e( 'High', 'nanosupport' ); ?></option>
-									<option value="critical" <?php selected( $submit_val, 'critical' ); ?>><?php esc_html_e( 'Critical', 'nanosupport' ); ?></option>
-								</select>
-							</div>
-						</div> <!-- /.ns-form-group -->
-						
-					<?php } //endif( $display_priority  ) ?>
-
-					<?php
-					$display_department = isset($ns_general_settings['is_department_visible']) ? absint($ns_general_settings['is_department_visible']) : false;
-
-					if( $display_department  ) { ?>
-
-						<!-- TICKET DEPARTMENTS -->
-						<div class="ns-form-group">
-							<label for="ns-ticket-department" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-								<?php esc_html_e( 'Department', 'nanosupport' ); ?>
-							</label>
-							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-								<?php echo ns_tooltip( 'ns-department', esc_html__( 'Choose a department to which you want to notify about the ticket', 'nanosupport' ), 'bottom' ); ?>
-							</div>
-							<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12 ns-form-inline">
-								<?php $submit_val = ! empty($_POST['ns_ticket_department']) ? $_POST['ns_ticket_department'] : ''; ?>
-								<?php
-								$ns_dept_args = array(
-											'show_option_all'    => '',
-											'show_option_none'   => esc_html__( 'Select a Department', 'nanosupport' ),
-											'option_none_value'	 => '',
-											'orderby'            => 'ID', 
-											'order'              => 'ASC',
-											'show_count'         => 0,
-											'hide_empty'         => 0,
-											'child_of'           => 0,
-											'exclude'            => '',
-											'echo'               => true,
-											'selected'           => $submit_val,
-											'hierarchical'       => 0, 
-											'name'               => 'ns_ticket_department',
-											'id'                 => 'ns-ticket-department',
-											'class'              => 'postform ns-form-control',
-											'depth'              => 0,
-											'tab_index'          => 0,
-											'taxonomy'           => 'nanosupport_department',
-											'hide_if_empty'      => false
-										);
-								wp_dropdown_categories( $ns_dept_args );
-								?>
-							</div>
-						</div> <!-- /.ns-form-group -->
-
-					<?php } //endif( $display_department  ) ?>
-
-					<?php
-					$NSECommerce = new NSECommerce();
-					if( $NSECommerce->ecommerce_enabled() ) {
-						$products = $NSECommerce->get_products();
-
+					<form class="ns-form-horizontal" method="post" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>"<?php
 						/**
-					     * -----------------------------------------------------------------------
-					     * HOOK : FILTER HOOK
-					     * ns_mandate_product_fields
-					     * 
-					     * Hook to moderate the permission for mandating product-specifc fields,
-					     * or not.
-					     *
-					     * @since  1.0.0
-					     * -----------------------------------------------------------------------
-					     */
-						$mandate_product_fields = apply_filters( 'ns_mandate_product_fields', true );
-						?>
+						* -----------------------------------------------------------------------
+						* HOOK : ACTION HOOK
+						* nanosupport_new_ticket_form_tag
+						*
+						* Fires inside the Add New Ticket Form tag.
+						*
+						* @since  1.0.0
+						*
+						* 10	- ns_change_form_type_for_rich_media()
+						* -----------------------------------------------------------------------
+						*/
+						do_action( 'nanosupport_new_ticket_form_tag' );
+						?>>
 
-						<!-- TICKET PRODUCTS -->
+						<!-- No FACTURE -->
 						<div class="ns-form-group">
-							<label for="ns-ticket-product" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-								<?php esc_html_e( 'Product', 'nanosupport' ); ?>
-								<?php if( $mandate_product_fields ) echo '<sup class="ns-required">*</sup>'; ?>
-							</label>
-							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-								<?php echo ns_tooltip( 'ns-product', esc_html__( 'Select the product the ticket is about.', 'nanosupport' ), 'bottom' ); ?>
-							</div>
-							<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12 ns-form-inline">
-								<?php $submit_val = !empty($_POST['ns_ticket_product']) ? $_POST['ns_ticket_product'] : ''; ?>
-								<select class="ns-form-control" name="ns_ticket_product" id="ns-ticket-product" aria-describedby="ns-product" <?php if( $mandate_product_fields ) echo 'required'; ?>>
-									<option value="" <?php selected( $submit_val, '' ); ?>><?php esc_html_e( 'Select a product', 'nanosupport' ); ?></option>
-									<?php foreach($products as $id => $product_name) { ?>
-								        <option value="<?php echo $id; ?>" <?php selected( $submit_val, $id ); ?>>
-								        	<?php echo esc_html($product_name); ?>
-								        </option>
-								    <?php } ?>
-								</select>
-							</div>
-						</div> <!-- /.ns-form-group -->
-
-						<!-- TICKET PRODUCT RECEIPT -->
-						<div class="ns-form-group">
-							<label for="ns-ticket-product-receipt" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-								<?php esc_html_e( 'Purhcase Receipt', 'nanosupport' ); ?>
-								<?php if( $mandate_product_fields ) echo '<sup class="ns-required">*</sup>'; ?>
-							</label>
-							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-								<?php echo ns_tooltip( 'ns-product-receipt', esc_html__( 'Enter the receipt number of purchasing the product.', 'nanosupport' ), 'bottom' ); ?>
-							</div>
-							<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12 ns-form-inline">
-								<?php $submit_val = !empty($_POST['ns_ticket_product_receipt']) ? $_POST['ns_ticket_product_receipt'] : ''; ?>
-								<input type="number" name="ns_ticket_product_receipt" class="ns-form-control" id="ns-ticket-product-receipt" aria-describedby="ns-product-receipt" value="<?php echo $submit_val; ?>" min="0" <?php if( $mandate_product_fields ) echo 'required'; ?>>
-							</div>
-						</div> <!-- /.ns-form-group -->
-
-					<?php } // endif( $NSECommerce->ecommerce_enabled ) ?>
-
-					<?php if( ! is_user_logged_in() ) { ?>
-
-						<?php
-						/**
-						 * Get parameter to load proper portion of code
-						 */
-						$login = false;
-						if( isset($_GET['action']) ) {
-							$login = 'login' == $_GET['action'] ? true : false;
-						}
-
-						/**
-						 * Embedded Login
-						 * Default is false (direct to system login URL)
-						 * ...
-						 */
-						$embedded_login = isset($ns_general_settings['embedded_login']) ? absint($ns_general_settings['embedded_login']) : false;
-						?>
-
-						<?php
-						/**
-						 * If embedded login is enabled.
-						 * ...
-						 */
-						if( $embedded_login ) {
-							$login_link 	= add_query_arg( 'action', 'login', get_the_permalink() );
-							$login_title 	= esc_html__( 'Login', 'nanosupport' );
-						} else {
-							$login_link 	= wp_login_url( get_the_permalink() );
-							$login_title 	= esc_html__( 'Login first', 'nanosupport' );
-						}
-						?>
-
-						<?php if( ! $login ) {
-							/**
-							 * REGISTRATION
-							 * Show the user registration form.
-							 */
-							?>
-
-							<?php
-							/**
-							 * If registration is activated
-							 * ...
-							 */
-							if( 1 == get_option('users_can_register') ) { ?>
-
-								<div class="ns-form-group">
-									<p class="ns-col-sm-9 ns-col-sm-offset-3">
-										<i class="ns-icon-info-circled"></i> <?php esc_html_e( 'With these information below, we will create an account on your behalf to track the ticket for further enquiry.', 'nanosupport' ); ?>
-									</p>
-								</div> <!-- /.ns-form-group -->
-
-								<?php
-								/**
-								 * Display when Auto Username Generation is OFF
-								 */
-								$generate_username = isset($ns_general_settings['account_creation']['generate_username']) ? $ns_general_settings['account_creation']['generate_username'] : 0;
-								if( $generate_username !== 1 ) : ?>
-
-									<div class="ns-form-group">
-										<label for="reg-name" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-											<?php esc_html_e( 'Username', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+							<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
+								
+								<div class="ns-col-md-3 ns-col-sm-3 ns-col-xs-12 ">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+										<label for="ns-ticket-inovice-number">
+											<?php esc_html_e( 'S.O# or P.O# Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
 										</label>
-										<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-											<?php echo ns_tooltip( 'ns-username', esc_html__( 'Username for the user account', 'nanosupport' ), 'bottom' ); ?>
-										</div>
-										<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-											<input name="reg_name" type="text" class="ns-form-control login-field" value="<?php echo( isset($_POST['reg_name']) ? $_POST['reg_name'] : null ); ?>" placeholder="<?php esc_attr_e( 'Username', 'nanosupport' ); ?>" id="reg-name" aria-describedby="ns-username" required>
-										</div>
-									</div> <!-- /.ns-form-group -->
-
-								<?php endif; ?>
-
-								<div class="ns-form-group">
-									<label for="reg-email" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-										<?php esc_html_e( 'Your email', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-										<?php echo ns_tooltip( 'ns-user-mail', esc_html__( 'Your email for the user account and for further communication', 'nanosupport' ), 'bottom' ); ?>
+										<?php echo ns_tooltip( 'ns-inovice-number', esc_html__( 'Sale order "S.O#" or Porduct order "P.O#" number', 'nanosupport' ), 'bottom' ); ?>
 									</div>
-									<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-										<input name="reg_email" type="email" class="ns-form-control login-field" value="<?php echo( isset($_POST['reg_email']) ? $_POST['reg_email'] : null ); ?>" placeholder="<?php esc_attr_e( 'Email', 'nanosupport' ); ?>" id="reg-email" aria-describedby="ns-user-mail" required>
-									</div>
-								</div> <!-- /.ns-form-group -->
-
-								<?php
-								/**
-								 * Display when Auto Password Generation is OFF
-								 */
-								$generate_password = isset($ns_general_settings['account_creation']['generate_password']) ? $ns_general_settings['account_creation']['generate_password'] : 0;
-								if( $generate_password !== 1 ) : ?>
-
-									<div class="ns-form-group">
-										<label for="reg-pass" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-											<?php esc_html_e( 'Password', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-										</label>
-										<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-											<?php echo ns_tooltip( 'ns-password', esc_html__( 'Set a password for your account. Password must be at least 5 characters. Strong password should contain numbers, alphabets, and alphanumeric characters with a mixture of uppercase and lowercase', 'nanosupport' ), 'bottom' ); ?>
-										</div>
-										<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-											<input name="reg_password" type="password" class="ns-form-control login-field" value="" placeholder="<?php esc_attr_e( 'Password', 'nanosupport' ); ?>" id="reg-pass" aria-describedby="ns-password" required>
-										</div>
-									</div> <!-- /.ns-form-group -->
-
-								<?php endif; ?>
-
-								<!-- HoneyPot - Spam Trap -->
-								<div style="<?php echo ( (is_rtl()) ? 'right' : 'left' ); ?>: -999em; position: absolute;">
-									<label for="come-to-trap"><?php esc_html_e( 'Anti-spam HoneyPot', 'nanosupport' ); ?></label>
-									<input type="text" name="repeat_email" id="come-to-trap" tabindex="-1" />
+									<input type="text" class="ns-form-control" name="ns_ticket_inovice_number" id="ns-ticket-inovice-number" value="<?php echo !empty($_POST['ns_ticket_inovice_number']) ? stripslashes_deep( $_POST['ns_ticket_inovice_number'] ) : ''; ?>" aria-describedby="ns-inovice-number" required>
 								</div>
-								<!-- /HoneyPot - Spam Trap -->
+						
+								<div class="ns-col-md-3 ns-col-sm-3 ns-col-xs-12">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+										<label for="ns-ticket-internal-reference-number">
+											<?php esc_html_e( 'Your Internal Reference Number', 'nanosupport' ); ?>
+										</label>
+										<?php echo ns_tooltip( 'ns-internal-reference-number', esc_html__( 'Your internal reference number from your establishment', 'nanosupport' ), 'bottom' ); ?>
+									</div>
+									<input type="text" class="ns-form-control" name="ns_ticket_internal_reference_number" id="ns-internal-reference-number" value="<?php echo !empty($_POST['ns_ticket_internal_reference_number']) ? stripslashes_deep( $_POST['ns_ticket_internal_reference_number'] ) : ''; ?>" aria-describedby="ns-internal-reference-number">
+								</div>
 
-								<?php
-								/**
-								 * -----------------------------------------------------------------------
-								 * HOOK : ACTION HOOK
-								 * nanosupport_register_form
-								 *
-								 * To display anything below registration fields
-								 *
-								 * @since  1.0.0
-								 * -----------------------------------------------------------------------
-								 */
-								do_action( 'nanosupport_register_form' ); ?>
+								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+										<label for="ns-ticket-subject">
+											<?php esc_html_e( 'Device Brand, Model and from factor', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+										</label>
+										<?php echo ns_tooltip( 'ns-computer-model', esc_html__( 'Computer brand, model and from factor EX: Dell Optiplex 990 Tower', 'nanosupport' ), 'bottom' ); ?>
+									</div>
+									<input type="text" class="ns-form-control" name="ns_ticket_subject" id="ns-ticket-subject" value="<?php echo !empty($_POST['ns_ticket_subject']) ? stripslashes_deep( $_POST['ns_ticket_subject'] ) : ''; ?>" aria-describedby="ns-subject" required>
+								</div>
 
-								<?php
-								/**
-								 * -----------------------------------------------------------------------
-								 * WP ACTION HOOK
-								 * register_form
-								 *
-								 * WordPress' core action hook to display anything below user registration
-								 * form.
-								 *
-								 * @link   https://codex.wordpress.org/Plugin_API/Action_Reference/register_form
-								 * -----------------------------------------------------------------------
-								 */
-								do_action( 'register_form' ); ?>
+							</div>	
+						</div> <!-- /.ns-form-group -->
 
-								<!-- HIDDEN INPUT TO TREAT FORM SUBMIT APPROPRIATELY -->
-								<input type="hidden" name="ns_registration_submit">
+						<!-- No SÉRIE -->
+						<div class="ns-form-group">
+							<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
+								
+								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+										<label for="ns-ticket-serial-number">
+											<?php esc_html_e( 'Serial Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+										</label>
+										<?php echo ns_tooltip( 'ns-computer-serial-number', esc_html__( 'Device serial number' , 'nanosupport' ), 'bottom' ); ?>
+									</div>
+									<input type="text" class="ns-form-control" name="ns_ticket_serial_number" id="ns-ticket-serial-number" value="<?php echo !empty($_POST['ns_ticket_serial_number']) ? stripslashes_deep( $_POST['ns_ticket_serial_number'] ) : ''; ?>" aria-describedby="ns-serial-number" required>
+								</div>	
 
-								<?php wp_nonce_field( 'nanosupport-registration' ); ?>
+								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+										<label for="ns-ticket-issuse">
+											<?php esc_html_e( 'Issuse/Defective Part', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+										</label>
+										<?php echo ns_tooltip( 'ns-ticket-issuse', esc_html__( 'Device Issuse/Defective part short description' , 'nanosupport' ), 'bottom' ); ?>
+									</div>
+									<input type="text" class="ns-form-control" name="ns_ticket_issuse" id="ns-ticket-issuse" value="<?php echo !empty($_POST['ns_ticket_issuse']) ? stripslashes_deep( $_POST['ns_ticket_issuse'] ) : ''; ?>" aria-describedby="ns-ticket-issuse" required>
+								</div>
 
-								<div class="ns-form-group">
-									<p class="ns-col-sm-9 ns-col-sm-offset-3">
-										<?php esc_html_e( 'Already have an account?', 'nanosupport' ); ?> <a href="<?php echo esc_url($login_link); ?>"><?php echo esc_html( $login_title ); ?></a>
-									</p>
-								</div> <!-- /.ns-form-group -->
+							</div> <!-- /.ns-col-md-12 -->
+						</div> <!-- /.ns-form-group -->
 
-							<?php } else { ?>
+						<?php
+						/**
+						* WP Editor array.
+						* Declare the array here, so that we can conditionally
+						* display tooltip content.
+						* @var array
+						* ...
+						*/
+						$wp_editor_array = array(
+											'media_buttons'		=> true,
+											'drag_drop_upload'	=> true,
+											'textarea_name'		=> 'ns_ticket_details',
+											'textarea_rows'		=> 5,
+											'editor_class'		=> 'ns-form-control',
+											'quicktags'			=> false,
+											'tinymce'			=> true
+										);
 
-								<!-- REGISTRATION IS INACTIVE -->
-								<div class="ns-form-group">
-									<p class="ns-col-sm-9 ns-col-sm-offset-3 ns-text-dim">
+						/**
+						* -----------------------------------------------------------------------
+						* HOOK : FILTER HOOK
+						* ns_wp_editor_specs
+						* 
+						* Hook to moderate the specs of the wp_editor().
+						*
+						* @since  1.0.0
+						* -----------------------------------------------------------------------
+						*/
+						$wp_editor_specs = apply_filters( 'ns_wp_editor_specs', $wp_editor_array );
+						?>
+
+						<!-- TICKET DETAILS -->
+						<div class="ns-form-group">
+							<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
+								
+								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
+									
+										<label for="ns-ticket-details">
+											<?php esc_html_e( 'Details', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+										</label>
+
 										<?php
-										/* translators: if you have account, login */
-										esc_html_e( 'Registration is closed now. If you already have an account', 'nanosupport' ); ?> <a href="<?php echo esc_url($login_link); ?>"><?php echo esc_html( $login_title ); ?></a>
-									</p>
-								</div> <!-- /.ns-form-group -->
+										$character_limit = ns_is_character_limit();
+										if( $character_limit ) {
+											/* translators: character limit to the ticket content, in number */
+											$content_tooltip_msg = sprintf( esc_html__( 'Write down your issue in details... At least %s characters is a must.', 'nanosupport' ), $character_limit );
+											// allowed HTML tags are not necessary if rich text editor is disabled.
+											if( $wp_editor_specs['tinymce'] != true ) {
+												$content_tooltip_msg .= '<br><small>';
+													/* translators: allowed HTML tags to the plugin */
+													$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
+												$content_tooltip_msg .= '</small>';
+											}
 
-							<?php } //endif ?>
+											echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
+										} else {
+											$content_tooltip_msg = esc_html__( 'Write down your issue in details...', 'nanosupport' );
+											// allowed HTML tags are not necessary if rich text editor is disabled.
+											if( $wp_editor_specs['tinymce'] != true ) {
+												$content_tooltip_msg .= '<br><small>';
+													/* translators: allowed HTML tags to the plugin */
+													$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
+												$content_tooltip_msg .= '</small>';
+											}
 
-						<?php } else {
-							/**
-							 * Login
-							 * Show the user login form.
-							 */
+											echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
+										}
+										?>
 
-							if( $embedded_login ) {
-							?>
-
-								<div class="ns-form-group">
-									<label for="login-name" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-										<?php esc_html_e( 'Username', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-										<?php echo ns_tooltip( 'ns-login-name', esc_html__( 'Write down your username of your account', 'nanosupport' ), 'bottom' ); ?>
-									</div>
-									<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-										<input name="login_name" type="text" class="ns-form-control login-field" value="<?php echo( isset($_POST['login_name']) ? $_POST['login_name'] : null ); ?>" placeholder="<?php esc_attr_e( 'Username', 'nanosupport' ); ?>" id="login-name" aria-describedby="ns-login-name" required>
-									</div>
-								</div> <!-- /.ns-form-group -->
-
-								<div class="ns-form-group">
-									<label for="login-pass" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-										<?php esc_html_e( 'Password', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
-										<?php echo ns_tooltip( 'ns-login-pass', esc_html__( 'Write down the password of your account to login', 'nanosupport' ), 'bottom' ); ?>
-									</div>
-									<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
-										<input name="login_password" type="password" class="ns-form-control login-field" value="" placeholder="<?php esc_attr_e( 'Password', 'nanosupport' ); ?>" id="login-pass" aria-describedby="ns-login-pass" required>
-									</div>
-								</div> <!-- /.ns-form-group -->
-
-								<div class="ns-form-group">
-									<div class="ns-col-sm-offset-3 ns-col-sm-9 ns-col-xs-12 ns-checkbox">
-										<label><input type="checkbox" name="rememberme"> <?php esc_html_e( 'Remember me', 'nanosupport' ); ?></label>
-									</div>
-								</div> <!-- /.ns-form-group -->
-
-								<div class="ns-form-group">
-								<?php if( 1 == get_option('users_can_register') ) { ?>
-									<p class="ns-col-sm-offset-3 ns-col-sm-9 ns-col-xs-12">
 										<?php
-										/* translators: submit ticket with registration URL */
-										printf( wp_kses( __( 'Don&rsquo;t have an account? <a href="%1s">Create one</a>', 'nanosupport' ), array('a'=>array('href'=>true)) ), esc_url( get_the_permalink() ) ); ?>
-									</p>
-								<?php } else { ?>
-									<p class="ns-col-sm-offset-3 ns-col-sm-9 ns-col-xs-12 ns-text-dim">
-										<?php
-										/* translators: submit ticket with registration URL */
-										printf( wp_kses( __( '<a href="%1s">Cancel Login</a>. But sorry, registration is closed now', 'nanosupport' ), array('a'=>array('href'=>true)) ), get_the_permalink() ); ?>
-									</p>
-								<?php } //endif ?>
-								</div> <!-- /.ns-form-group -->
+										$ticket_content = !empty($_POST['ns_ticket_details']) ? $_POST['ns_ticket_details'] : '';
 
-								<!-- HIDDEN INPUT TO TREAT FORM SUBMIT APPROPRIATELY -->
-								<input type="hidden" name="ns_login_submit">
+										// initiate the editor.
+										wp_editor(
+												$content   = $ticket_content,
+												$editor_id = 'ns-ticket-details',
+												$wp_editor_specs
+											);
+										?>
+									
+									</div>
 
-								<?php wp_nonce_field( 'nanosupport-login' ); ?>
+								</div>
 
-							<?php } //endif( $embedded_login ) ?>
+								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+								
+									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label ns-control-label-mobile">
+										
+										<label id="ns-ticket-retrun-adresse">
+											<?php esc_html_e( 'Alternative return Adresse', 'nanosupport' ); ?>
+										</label>
 
-						<?php } //endif( ! $login ) ?>
 
-					<?php } //endif( ! is_user_logged_in() ) ?>
-					
-					<div class="ns-form-group">
-						<div class="ns-col-sm-offset-3 ns-col-sm-9 ns-col-xs-12">
-							<button type="submit" name="ns_submit" class="ns-btn ns-btn-primary">
-								<?php esc_html_e( 'Submit', 'nanosupport' ); ?>
-							</button>
+										<?php echo ns_tooltip( 'ns-return-adresse', esc_html__( 'Use a alternative return adresse, if blank profil adresse will be used' , 'nanosupport' ), 'bottom' ); ?>
 
-							<?php if( is_user_logged_in() ) : ?>
-								<span class="ns-text-dim ns-small">
-									&nbsp;
-									<?php
-									$current_user = wp_get_current_user();
-									/* translators: logged in user display name */
-									printf( wp_kses( __('<strong>Submitting as:</strong> %s', 'nanosupport'), array('strong'=>array()) ), $current_user->display_name ); ?>
-									&nbsp;(<a href="<?php echo wp_logout_url( get_permalink() ); ?>"><?php esc_html_e('Log out', 'nanosupport') ?></a>)
-								</span>
-							<?php endif; ?>
+										<i id="retrun-adresse-map-click" class="arrow down"></i>
+
+									</div>
+
+										<div id="ticket-retrun-adresse-div">
+
+											<?php
+											$wp_editor_array = array(
+																'media_buttons'		=> false,
+																'textarea_name'		=> 'ns_ticket_return_adresse',
+																'textarea_rows'		=> 4,
+																'editor_class'		=> 'ns-form-control',
+																'quicktags'			=> false,
+																'tinymce'			=> false
+															);
+
+											$wp_editor_specs_adresse = apply_filters( 'ns_wp_editor_specs_adresse', $wp_editor_array );
+											
+									
+											function prefix_add_footer_styles() {
+												wp_enqueue_script('google-maps', 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD6e1aNk3fjsJEtmcYXXVRbZmZJlsJyLDM&libraries=places&callback=initMap', array('jquery'));     
+											}
+											add_action( 'get_footer', 'prefix_add_footer_styles' ); ?>
+										
+											<div id="ticket-retrun-adresse-text-area">
+
+												<input id="searchInput" class="controls" type="text" placeholder="<?php esc_html_e('Enter place/school name or adresse', 'nanosupport') ?>"></input>
+												<div id="map"></div>
+											
+												<?php 
+												$ticket_return_adresse = !empty($_POST['ns_ticket_return_adresse']) ? $_POST['ns_ticket_return_adresse'] : '';
+												// initiate the editor.
+												wp_editor(
+														$content   = $ticket_return_adresse,
+														$editor_id = 'ns-ticket-return-adresse',
+														$wp_editor_specs_adresse
+													);
+												?>
+											</div>
+										
+									</div>
+
+									<div class="ns-form-group ns-form-group-submit">
+										<div class="ns-col-sm-12 ns-col-sm-12 ns-col-xs-12">
+											<button type="submit" name="ns_submit" class="ns-btn ns-btn-primary ns-btn-ticket" onclick="return confirm(' <?php _e('Confirm before send!','nanosupport'); ?> ')">
+												<?php esc_html_e( 'Submit', 'nanosupport' ); ?> *
+											</button>
+
+											</br>
+
+											<?php if( is_user_logged_in() ) : ?>
+												<span class="ns-text-dim ns-small">
+													<?php
+													$current_user = wp_get_current_user();
+													echo esc_html_e( '* By clicking the submit button, you agree to our ', 'nanosupport' ) ; ?>
+													
+													<a href="<?php echo wp_logout_url( get_permalink() ); ?>"><?php esc_html_e('Terms of use', 'nanosupport') ?></a> & <a href="<?php echo wp_logout_url( get_permalink() ); ?>"><?php esc_html_e('Return Policy', 'nanosupport') ?></a>
+												</span>
+											<?php endif; ?>
+										</div>
+									</div> <!-- /.ns-form-group -->
+
+								</div>
+							</div>
 						</div>
-					</div> <!-- /.ns-form-group -->
 
-				</form> <!-- /.ns-form-horizontal -->
+					</form> <!-- /.ns-form-horizontal -->
+
+				<?php } else { //endif( ! is_user_logged_in() )
+
+					echo wp_safe_redirect( wp_login_url( get_permalink() ) ); 
+
+				} ?>
 
 			</div>
 		</div> <!-- /.ns-row -->

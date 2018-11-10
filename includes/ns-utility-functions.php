@@ -433,6 +433,13 @@ function ns_get_ticket_meta( $ticket_id = null ) {
                 'class' => 'status-solved',
                 'label' => '<span class="ns-label ns-label-success">'. __( 'Solved', 'nanosupport' ) .'</span>',
             );
+        } elseif( 'shipping_back' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'shipping_back',
+                'name'  => __( 'Shipping back', 'nanosupport' ),
+                'class' => 'status-shipping-back',
+                'label' => '<span class="ns-label ns-label-primary">'. __( 'Shipping back', 'nanosupport' ) .'</span>',
+            );
         } elseif( 'inspection' === $this_status ) {
             $ticket_status = array(
                 'value' => 'inspection',
@@ -440,12 +447,75 @@ function ns_get_ticket_meta( $ticket_id = null ) {
                 'class' => 'status-inspection',
                 'label' => '<span class="ns-label ns-label-primary">'. __( 'Under Inspection', 'nanosupport' ) .'</span>',
             );
+        } elseif( 'pending' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'pending',
+                'name'  => __( 'Pending', 'nanosupport' ),
+                'class' => 'status-pending',
+                'label' => '<span class="ns-label ns-label-primary">'. __( 'Pending', 'nanosupport' ) .'</span>',
+            );
         } elseif( 'open' === $this_status ) {
             $ticket_status = array(
                 'value' => 'open',
                 'name'  => __( 'Open', 'nanosupport' ),
                 'class' => 'status-open',
                 'label' => '<span class="ns-label ns-label-warning">'. __( 'Open', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'return_to_sunterra' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'return_to_sunterra',
+                'name'  => __( 'Return computer to Sunterra', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Return computer to Sunterra', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'return_part_to_sunterra' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'return_part_to_sunterra',
+                'name'  => __( 'Return computer part to Sunterra for exchange', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Return computer part to Sunterra for exchange', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'send_part_wo_return' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'send_part_wo_return',
+                'name'  => __( 'Sending computer part without return', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Sending computer part without return', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'part_in_order' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'part_in_order',
+                'name'  => __( 'Part in order', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Part in order', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'refused' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'refused',
+                'name'  => __( 'RMA refused', 'nanosupport' ),
+                'class' => 'status-refuse',
+                'label' => '<span class="ns-label ns-label-refuse">'. __( 'RMA refused', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'hold' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'hold',
+                'name'  => __( 'RMA on hold (Out of Stock)', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'RMA on hold (Out of Stock)', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'return_laptop_evaluation' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'return_laptop_evaluation',
+                'name'  => __( 'Return the laptop for evaluation', 'nanosupport' ),
+                'class' => 'status-return-laptop',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for evaluation', 'nanosupport' ) .'</span>',
+            );
+        } elseif( 'return_laptop_credit' === $this_status ) {
+            $ticket_status = array(
+                'value' => 'return_laptop_credit',
+                'name'  => __( 'Return the laptop for credit', 'nanosupport' ),
+                'class' => 'status-open',
+                'label' => '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for credit', 'nanosupport' ) .'</span>',
             );
         }
 

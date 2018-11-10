@@ -203,9 +203,53 @@ function ns_control_specifics() {
         $_ns_ticket_agent    = ! empty($_ns_ticket_agent)     ? $_ns_ticket_agent      : '';
         $_ns_ticket_product  = ! empty($_ns_ticket_product)   ? $_ns_ticket_product    : '';
         $_ns_ticket_receipt  = ! empty($_ns_ticket_receipt)   ? $_ns_ticket_receipt    : '';
-        ?>
 
+        $meta_data_rma_number = get_post_meta( $post->ID, 'ns_internal_rma_number', true );
+        $meta_data_inovice_number = get_post_meta( $post->ID, '_ns_ticket_inovice_number', true );
+        $meta_data_additional_status = get_post_meta( $post->ID, '_ns_internal_additional_status', true );
+        $meta_data_serial_number = get_post_meta( $post->ID, '_ns_ticket_serial_number', true );
+        $meta_data_return_adresse = get_post_meta( $post->ID, '_ns_ticket_return_adresse', true );
+        $meta_data_traking_number = get_post_meta( $post->ID, '_ns_ticket_traking_number', true );
+        $meta_data_ticket_issuse = get_post_meta( $post->ID, '_ns_ticket_issuse', true );
+        $meta_internal_reference_number = get_post_meta( $post->ID, '_ns_ticket_internal_reference_number', true );
+        $meta_data_rma_author = get_userdata($post->post_author);
+
+        $sn_args = array(
+            'fields' => 'ids',
+            'post_type'   => 'nanosupport',
+            'meta_query'  => array(
+                array(
+                'key' => '_ns_ticket_serial_number',
+                'value' => $meta_data_serial_number,
+                'compare' => '='
+                )
+            )
+        );
+
+        $my_query = new WP_Query( $sn_args );
+
+        $same_sn_count = $my_query->found_posts;
+        ?>
+        
         <div class="row ns-control-holder">
+
+            <div class="ns-row misc-pub-section">   
+                <div style="text-align: center;">
+                    <div class="ns-head-col">
+                        <span class="dashicons dashicons-shield"></span> <?php esc_html_e( 'RMA Author', 'nanosupport' );?>
+                    </div>
+                    <div class="ns-body-col">
+                        <div class="ns-field">
+                            <a href="<?php echo get_author_posts_url( $post->post_author ); ?>" class="ns-field-item" name="ns_internal_rma_author" id="ns-internal-rma-author ns-ticket-status" rows="5" readonly><?php echo  $meta_data_rma_author->first_name . ' ' . $meta_data_rma_author->last_name ?></a>
+                        </div> <!-- /.ns-field -->
+                    </div> <!-- /.ns-box -->
+                    <div class="ns-body-col">
+                        <div class="ns-field">
+                            <?php echo get_user_meta($meta_data_rma_author->ID, 'company_name', true) ?>
+                        </div> <!-- /.ns-field -->
+                    </div> <!-- /.ns-box -->
+                </div>
+            </div>
 
             <div class="ns-row misc-pub-section">
                 <div class="ns-head-col">
@@ -216,9 +260,19 @@ function ns_control_specifics() {
                 <div class="ns-body-col">
                     <div class="ns-field">
                         <select name="ns_ticket_status" class="ns-field-item" id="ns-ticket-status" aria-describedby="ns-ticket-status-tooltip" required>
-                            <option value="open" <?php selected( $_ns_ticket_status, 'open' ); ?>><?php esc_html_e( 'Open', 'nanosupport' ); ?></option>
-                            <option value="inspection"<?php selected( $_ns_ticket_status, 'inspection' ); ?>><?php esc_html_e( 'Under Inspection', 'nanosupport' ); ?></option>
                             <option value="solved"<?php selected( $_ns_ticket_status, 'solved' ); ?>><?php esc_html_e( 'Solved', 'nanosupport' ); ?></option>
+                            <option value="shipping_back"<?php selected( $_ns_ticket_status, 'shipping_back' ); ?>><?php esc_html_e( 'Shipping back to Customer', 'nanosupport' ); ?></option>
+                            <option value="inspection"<?php selected( $_ns_ticket_status, 'inspection' ); ?>><?php esc_html_e( 'Under Inspection', 'nanosupport' ); ?></option>
+                            <option value="pending" <?php selected( $_ns_ticket_status, 'pending' ); ?>><?php esc_html_e( 'Pending', 'nanosupport' ); ?></option>
+                            <option value="open" <?php selected( $_ns_ticket_status, 'open' ); ?>><?php esc_html_e( 'Open', 'nanosupport' ); ?></option>
+                            <option value="return_to_sunterra" <?php selected( $_ns_ticket_status, 'return_to_sunterra' ); ?>><?php esc_html_e( 'Return computer for reparation or exchange', 'nanosupport' ); ?></option>
+                            <option value="return_part_to_sunterra" <?php selected( $_ns_ticket_status, 'return_part_to_sunterra' ); ?>><?php esc_html_e( 'Return computer part for exchange', 'nanosupport' ); ?></option>
+                            <option value="send_part_wo_return" <?php selected( $_ns_ticket_status, 'send_part_wo_return' ); ?>><?php esc_html_e( 'Sending computer part without return', 'nanosupport' ); ?></option>
+                            <option value="part_in_order" <?php selected( $_ns_ticket_status, 'part_in_order' ); ?>><?php esc_html_e( 'Part in order', 'nanosupport' ); ?></option>
+                            <option value="refused" <?php selected( $_ns_ticket_status, 'refused' ); ?>><?php esc_html_e( 'RMA refused', 'nanosupport' ); ?></option>
+                            <option value="hold" <?php selected( $_ns_ticket_status, 'hold' ); ?>><?php esc_html_e( 'RMA on hold (Out of Stock)', 'nanosupport' ); ?></option>
+                            <option value="return_laptop_evaluation" <?php selected( $_ns_ticket_status, 'return_laptop_evaluation' ); ?>><?php esc_html_e( 'Return the laptop for evaluation', 'nanosupport' ); ?></option>
+                            <option value="return_laptop_credit" <?php selected( $_ns_ticket_status, 'return_laptop_credit' ); ?>><?php esc_html_e( 'Return the laptop for credit', 'nanosupport' ); ?></option>
                         </select>
                     </div> <!-- /.ns-field -->                    
                 </div>
@@ -242,44 +296,108 @@ function ns_control_specifics() {
                 </div>
             </div> <!-- /.ns-row -->
 
-            <?php
-            /**
-             * Agent assignment is an administrative power.
-             */
-            if( ns_is_user( 'manager' ) ) : ?>
+            <div class="ns-row misc-pub-section">
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Issuse', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the Issuse to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_issuse" id="ns_ticket_issuse ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_ticket_issuse']) ? $_POST['ns_ticket_issuse'] : esc_html( $meta_data_ticket_issuse ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
 
-                <div class="ns-row misc-pub-section">
-                    <div class="ns-head-col">
-                        <i class="dashicons dashicons-businessman"></i> <?php esc_html_e( 'Agent', 'nanosupport' );
-                        echo ns_tooltip( 'ns-ticket-agent-tooltip', esc_html__( 'Choose agent to assign the ticket. You can make an agent by editing the user from their user profile.', 'nanosupport' ), 'left' );
-                        ?>
-                    </div>
-                    <div class="ns-body-col">
-                        <?php
-                        $agent_query = new WP_User_Query( array(
-                                'meta_key'      => 'ns_make_agent',
-                                'meta_value'    => 1,
-                                'orderby'       => 'display_name'
-                            ) );
-                        ?>
-                        <div class="ns-field">
-                            <select name="ns_ticket_agent" class="ns-field-item ns-auto-select-search" id="ns-ticket-agent" aria-describedby="ns-ticket-agent-tooltip">
-                                <?php
-                                if ( ! empty( $agent_query->results ) ) {
-                                    echo '<option value="">'. esc_html__( 'Assign an agent', 'nanosupport' ) .'</option>';
-                                    foreach ( $agent_query->results as $user ) {
-                                        echo '<option value="'. $user->ID .'" '. selected( $_ns_ticket_agent, $user->ID ) .'>'. $user->display_name .'</option>';
-                                    }
-                                } else {
-                                    echo '<option value="">'. esc_html__( 'No agent found', 'nanosupport' ) .'</option>';
-                                }
-                                ?>
-                            </select>
-                        </div> <!-- /.ns-field -->                    
-                    </div>
-                </div> <!-- /.ns-row -->
+                </br>
+                
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Additional ticket status', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Add additional ticket status to guide the client', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_internal_additional_status" id="ns_internal_additional_status ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_internal_additional_status']) ? $_POST['ns_internal_additional_status'] : esc_html( $meta_data_additional_status ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
 
-            <?php endif; ?>
+                </br>
+
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-tickets"></span> <?php esc_html_e( 'RMA Number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the ticket number to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_internal_rma_number" id="ns-internal-rma-number ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_internal_rma_number']) ? $_POST['ns_internal_rma_number'] : esc_html( $meta_data_rma_number ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Serial Number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the serial number to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_serial_number" id="ns_ticket_serial_number ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_ticket_serial_number']) ? $_POST['ns_ticket_serial_number'] : esc_html( $meta_data_serial_number ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Inovice number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the inovice number to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_inovice_number" id="ns_ticket_inovice_number ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_ticket_inovice_number']) ? $_POST['ns_ticket_inovice_number'] : esc_html( $meta_data_inovice_number ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Internal Reference Number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the Internal Reference Number to help user to find tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_internal_reference_number" id="ns_ticket_internal_reference_number ns-ticket-status" value="<?php echo isset($_POST['ns_ticket_internal_reference_number']) ? $_POST['ns_ticket_internal_reference_number'] : esc_html( $meta_internal_reference_number ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+
+                </br>
+
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Return adresse', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the return adresse to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <textarea class="ns-field-item" name="ns_ticket_return_adresse" id="ns-ticket-return-adresse" cols="50" rows="8"><?php echo isset($_POST['ns_ticket_return_adresse']) ? $_POST['ns_ticket_return_adresse'] : ( $meta_data_return_adresse ) ; ?></textarea>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Nationex traking number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Change the traking number to track unsolved tickets separately.', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_traking_number" id="ns_ticket_traking_number ns-ticket-status" rows="5" value="<?php echo isset($_POST['ns_ticket_traking_number']) ? $_POST['ns_ticket_traking_number'] : esc_html( $meta_data_traking_number ); ?>"></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'RMA with same serial number', 'nanosupport' );
+                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'Number of RMA with the same serial number', 'nanosupport' ), 'left' );
+                    ?>
+                </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <input type="text" class="ns-field-item" name="ns_ticket_same_sn" id="ns_ticket_same_sn ns-ticket-status" rows="5" value="<?php echo esc_html( $same_sn_count ); ?>" readonly></input>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+            </div> <!-- /.ns-row -->
 
             <?php
             $NSECommerce = new NSECommerce();
@@ -378,7 +496,6 @@ function ns_control_specifics() {
                     
                 </div>
                 <!-- /#ns-product-edit-panel -->
-
 
             <?php } ?>
 
@@ -509,6 +626,136 @@ function ns_save_nanosupport_meta_data( $post_id ) {
     } elseif( '' == $internal_note && $existing_internal_note ) {
         delete_post_meta( $post_id, 'ns_internal_note', $existing_internal_note );
     }
+
+        /**
+     * Save Internal RMA Number.
+     * ...
+     */
+    $internal_rma_number          = $_POST['ns_internal_rma_number'];
+    $existing_internal_rma_number = get_post_meta( $post_id, 'ns_internal_rma_number', true );
+
+    if( $internal_rma_number && $internal_rma_number != $existing_internal_rma_number ) {
+        // Sanitize internal note
+        $internal_rma_number = wp_kses( $internal_rma_number, ns_allowed_html() );
+
+        update_post_meta( $post_id, 'ns_internal_rma_number', $internal_rma_number );
+    } elseif( '' == $internal_rma_number && $existing_internal_rma_number ) {
+        delete_post_meta( $post_id, 'ns_internal_rma_number', $existing_internal_rma_number );
+    }
+
+    /**
+     * Save Serial Number Number.
+     * ...
+     */
+    $internal_serial_number          = $_POST['ns_ticket_serial_number'];
+    $existing_internal_serial_number = get_post_meta( $post_id, '_ns_ticket_serial_number', true );
+
+    if( $internal_serial_number && $internal_serial_number != $existing_internal_serial_number ) {
+        // Sanitize internal note
+        $internal_serial_number = wp_kses( $internal_serial_number, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_serial_number', $internal_serial_number );
+    } elseif( '' == $internal_serial_number && $existing_internal_serial_number ) {
+        delete_post_meta( $post_id, '_ns_ticket_serial_number', $existing_internal_serial_number );
+    }
+
+    /**
+     * Save return adresse.
+     * ...
+     */
+    $internal_return_adresse          = $_POST['ns_ticket_return_adresse'];
+    $existing_internal_return_adresse = get_post_meta( $post_id, '_ns_ticket_return_adresse', true );
+
+    if( $internal_return_adresse && $internal_return_adresse != $existing_internal_return_adresse ) {
+        // Sanitize internal note
+        $internal_return_adresse = wp_kses( $internal_return_adresse, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_return_adresse', $internal_return_adresse );
+    } elseif( '' == $internal_return_adresse && $existing_internal_return_adresse ) {
+        delete_post_meta( $post_id, '_ns_ticket_return_adresse', $existing_internal_return_adresse );
+    }
+
+    /**
+     * Save traking number.
+     * ...
+     */
+    $internal_traking_number          = $_POST['ns_ticket_traking_number'];
+    $existing_internal_traking_number = get_post_meta( $post_id, '_ns_ticket_traking_number', true );
+
+    if( $internal_traking_number && $internal_traking_number != $existing_internal_traking_number ) {
+        // Sanitize internal note
+        $internal_traking_number = wp_kses( $internal_traking_number, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_traking_number', $internal_traking_number );
+    } elseif( '' == $internal_traking_number && $existing_internal_traking_number ) {
+        delete_post_meta( $post_id, '_ns_ticket_traking_number', $existing_internal_traking_number );
+    }
+
+        /**
+     * Save inovice number.
+     * ...
+     */
+    $internal_inovice_number          = $_POST['ns_ticket_inovice_number'];
+    $existing_internal_inovice_number = get_post_meta( $post_id, '_ns_ticket_inovice_number', true );
+
+    if( $internal_inovice_number && $internal_inovice_number != $existing_internal_inovice_number ) {
+        // Sanitize internal note
+        $internal_inovice_number = wp_kses( $internal_inovice_number, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_inovice_number', $internal_inovice_number );
+    } elseif( '' == $internal_inovice_number && $existing_internal_inovice_number ) {
+        delete_post_meta( $post_id, '_ns_ticket_inovice_number', $existing_internal_inovice_number );
+    }
+
+    
+        /**
+     * Save additional_status.
+     * ...
+     */
+    $internal_additional_status          = $_POST['ns_internal_additional_status'];
+    $existing_internal_additional_status = get_post_meta( $post_id, '_ns_internal_additional_status', true );
+
+    if( $internal_additional_status && $internal_additional_status != $existing_internal_additional_status ) {
+        // Sanitize internal note
+        $internal_additional_status = wp_kses( $internal_additional_status, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_internal_additional_status', $internal_additional_status );
+    } elseif( '' == $internal_additional_status && $existing_internal_additional_status ) {
+        delete_post_meta( $post_id, '_ns_internal_additional_status', $existing_internal_additional_status );
+    }
+
+    /**
+     * Save traking number.
+     * ...
+     */
+    $internal_ticket_issuse          = $_POST['ns_ticket_issuse'];
+    $existing_internal_ticket_issuse = get_post_meta( $post_id, '_ns_ticket_issuse', true );
+
+    if( $internal_ticket_issuse && $internal_ticket_issuse != $existing_internal_ticket_issuse ) {
+        // Sanitize internal note
+        $internal_ticket_issuse = wp_kses( $internal_ticket_issuse, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_issuse', $internal_ticket_issuse );
+    } elseif( '' == $internal_ticket_issuse && $existing_internal_ticket_issuse ) {
+        delete_post_meta( $post_id, '_ns_ticket_issuse', $existing_internal_ticket_issuse );
+    }
+
+    /**
+    * Save internal reference number.
+    * ...
+    */
+    $internal_ticket_internal_reference_number = $_POST['ns_ticket_internal_reference_number'];
+    $existing_ticket_internal_reference_number = get_post_meta( $post_id, '_ns_ticket_internal_reference_number', true );
+
+    if( $internal_ticket_internal_reference_number && $internal_ticket_internal_reference_number != $existing_ticket_internal_reference_number ) {
+        // Sanitize internal note
+        $internal_ticket_internal_reference_number = wp_kses( $internal_ticket_internal_reference_number, ns_allowed_html() );
+
+        update_post_meta( $post_id, '_ns_ticket_internal_reference_number', $internal_ticket_internal_reference_number );
+    } elseif( '' == $internal_ticket_internal_reference_number && $existing_ticket_internal_reference_number ) {
+        delete_post_meta( $post_id, '_ns_ticket_internal_reference_number', $existing_ticket_internal_reference_number );
+    }
+
 }
 
 add_action( 'save_post',        'ns_save_nanosupport_meta_data' );

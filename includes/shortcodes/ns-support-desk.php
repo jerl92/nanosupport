@@ -79,6 +79,56 @@ function ns_support_desk_page() {
 						'meta_query'		=> $meta_query
 					);
 
+			if( isset( $_GET['orderby'] ) && "post_title" == $_GET['orderby'] ){
+				$args['orderby'] = 'name';
+				$args['order']  = 'ASC';
+			} else if( isset( $_GET['orderby'] ) && "modified" == $_GET['orderby'] ){
+				$args['orderby'] = 'modified';
+				$args['order']  = 'DESC';
+			} else if( isset( $_GET['orderby'] ) && "last_comment" == $_GET['orderby'] ){
+				$args['posts_orderby'] = 'comment_count';
+				$args['order'] = 'DESC';
+			}
+
+			if( isset( $_GET['status'] ) && "pending" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'pending';
+			} else if( isset( $_GET['status'] ) && "shipping_back" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'shipping_back';
+			} else if( isset( $_GET['status'] ) && "under_inspection" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'inspection';
+			} else if( isset( $_GET['status'] ) && "return_computer" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'return_to_sunterra';
+			} else if( isset( $_GET['status'] ) && "return_part" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'return_part_to_sunterra';
+			} else if( isset( $_GET['status'] ) && "sending_part" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'send_part_wo_return';
+			} else if( isset( $_GET['status'] ) && "return_laptop" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = array ( 'return_laptop_evaluation' , 'return_laptop_credit' );
+			} else if( isset( $_GET['status'] ) && "part_in_order" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'part_in_order';
+			} else if( isset( $_GET['status'] ) && "refused" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'refused';
+			} else if( isset( $_GET['status'] ) && "hold" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'hold';
+			} else if( isset( $_GET['status'] ) && "solved" == $_GET['status'] ){
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'solved';
+			} else {
+				$args['meta_key'] = '_ns_ticket_status';
+				$args['meta_value'] = 'solved';
+				$args['meta_compare'] = '!=';
+			}
+
 			add_filter( 'posts_clauses', 'ns_change_query_to_include_agents_tickets', 10, 2 );
 
 				/**
@@ -106,6 +156,7 @@ function ns_support_desk_page() {
 					//Get ticket information
 					$ticket_meta 	 = ns_get_ticket_meta( get_the_ID() );
 					$highlight_class = 'priority' === $highlight_choice ? $ticket_meta['priority']['class'] : $ticket_meta['status']['class'];
+					$meta_data_additional_status = get_post_meta( $post->ID, '_ns_internal_additional_status', true );
 
 					$NSECommerce = new NSECommerce();
 					if( $NSECommerce->ecommerce_enabled() ) {
@@ -114,101 +165,203 @@ function ns_support_desk_page() {
 					}
 					?>
 
+					<?php if( 'solved' != $ticket_meta['status']['value'] ) { ?>
+
 					<div class="ticket-cards ns-cards <?php echo esc_attr($highlight_class); ?>">
 						<div class="ns-row">
 							<div class="ns-col-sm-4 ns-col-xs-12">
 								<h3 class="ticket-head">
+
 									<?php if( 'pending' === $ticket_meta['status']['value'] ) : ?>
 										<?php if( ns_is_user('agent_and_manager') ) : ?>
 											<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
-												<?php the_title(); echo $product_icon; ?>
+												<?php the_title(); ?>
 											</a>
 										<?php else : ?>
-											<?php the_title(); echo $product_icon; ?>
+											<?php the_title(); ?>
 										<?php endif; ?>
 									<?php else : ?>
 										<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
-											<?php the_title(); echo $product_icon; ?>
+											<?php the_title(); ?>
 										</a>
 									<?php endif; ?>
-									
+
 									<?php if( ns_is_user('agent_and_manager') ) : ?>
 										<span class="ticket-tools">
 											<?php edit_post_link( 'Edit', '', '', get_the_ID() ); ?>
 											<a class="ticket-view-link" href="<?php echo esc_url(get_the_permalink()); ?>" title="<?php esc_attr_e( 'Permanent link to the Ticket', 'nanosupport' ); ?>">
-												<?php esc_html_e( 'View', 'nanosupport' ); ?>
+												<?php _e( 'View', 'nanosupport' ); ?>
 											</a>
 										</span> <!-- /.ticket-tools -->
 									<?php endif; ?>
 								</h3>
-								<div class="ticket-author">
-									<?php
-									$author = get_user_by( 'id', $post->post_author );
-									echo '<i class="ns-icon-user"></i> '. $author->display_name;
-									?>
+
+								<div class="text-blocks text-blocks-sn">
+									<strong><?php _e( 'S/N', 'nanosupport' ); ?>: </strong><?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_serial_number', true )); ?>
 								</div>
-							</div>
-							<div class="ns-col-sm-2 ns-col-xs-4 ticket-meta">
-								<div class="text-blocks ns-question-50">
-									<strong><?php esc_html_e( 'Priority:', 'nanosupport' ); ?></strong>
-									<div class="ns-small">
-										<?php echo $ticket_meta['priority']['label']; ?>
+
+								<div class="text-blocks">
+									<strong><?php _e( 'Issuse/Defective Part', 'nanosupport' ); ?>: </strong><?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_issuse', true )); ?>
+								</div>
+								
+								<?php $get_rma_number = get_post_meta( get_the_ID(), 'ns_internal_rma_number', true );
+								$get_internal_reference_number = get_post_meta( get_the_ID(), '_ns_ticket_internal_reference_number', true );
+
+								 if ( $get_rma_number ) { ?>
+									<div class="text-blocks">
+											<strong><?php _e( 'RMA Number', 'nanosupport' ); ?>:</strong>
+											<?php echo esc_attr( $get_rma_number ); ?>
 									</div>
+								<?php } //endif ?>
+								<div class="text-blocks">
+										<strong><?php _e( 'Inovice Number', 'nanosupport' ); ?>:</strong>
+										<?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_inovice_number', true )); ?>
 								</div>
+								<?php if ( $get_internal_reference_number ) { ?>
+									<div class="text-blocks">
+											<strong><?php _e( 'Your Internal Reference Number', 'nanosupport' ); ?>:</strong>
+											<?php echo esc_attr( $get_internal_reference_number ); ?>
+									</div>
+								<?php } //endif ?>
+
+							</div>
+
+							<div class="ns-col-sm-8 ns-col-xs-12 ticket-meta">
 								<div class="text-blocks ns-question-50">
-									<strong><?php esc_html_e( 'Ticket Status:', 'nanosupport' ); ?></strong><br>
+									<strong><?php _e( 'Ticket Status:', 'nanosupport' ); ?></strong></br>
 									<?php echo $ticket_meta['status']['label']; ?>
+									<?php if ($meta_data_additional_status != '') { ?>
+										<span class="ns-label ns-label-status-additional">
+											<?php echo $meta_data_additional_status; ?>
+										</span>
+									<?php } //endif ?>
 								</div>
 							</div>
+
+							<div class="ns-col-sm-4 ns-col-xs-12 ticket-meta">
+
+								<?php if (( $ticket_meta['status']['value'] == 'shipping_back' ) ) : ?>	
+
+								<div class="text-blocks">				
+						
+									<?php if ( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ) != '' ) : ?>
+										<strong><a target="_blank" href="http://www.nationex.com/fr/reperage_multiple_colis_livraison.html"><?php _e( 'Nationex traking number', 'nanosupport' ); ?>:</a></strong><br>
+										<?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true )); ?>
+									<?php endif; ?>
+									
+								</div>
+
+								<?php endif; ?>
+
+								<?php if (( $ticket_meta['status']['value'] == 'return_to_sunterra' ) || ( $ticket_meta['status']['value'] == 'return_part_to_sunterra' ) || ( $ticket_meta['status']['value'] == 'return_laptop_evaluation' ) || ( $ticket_meta['status']['value'] == 'return_laptop_credit' )) :?>
+									<div class="text-blocks">	
+										<strong><?php _e( 'Need a pickup', 'nanosupport' ); ?>?</strong><br>
+										<a target="_blank" href="http://www.nationex.com/pickup_form.pdf"><?php _e( 'Download and fill the pickup form', 'nanosupport' ); ?></a><br>
+									</div>
+								<?php endif; ?>
+
+								<div class="text-blocks">
+									<strong><?php _e( 'Created &amp; Updated:', 'nanosupport' ); ?></strong><br>
+									<?php echo date( 'd M Y h:i A', strtotime( $post->post_date ) ); ?><br>
+									<?php echo date( 'd M Y h:i A', strtotime( ns_get_ticket_modified_date($post->ID) ) ); ?>
+								</div>
+							</div>
+
 							<div class="toggle-ticket-additional">
 								<i class="ns-toggle-icon ns-icon-chevron-circle-down" title="<?php esc_attr_e( 'Load more', 'nanosupport' ); ?>"></i>
 							</div>
-							<div class="ticket-additional ns-hide-mobile">
-								<div class="ns-col-sm-3 ns-col-xs-4 ticket-meta">
+							<div class="ticket-additional">
+								<ticket-cards ns-cards priority-lowdiv class="ns-col-sm-3 ns-col-xs-4 ticket-meta">
 									<div class="text-blocks">
-										<strong><?php esc_html_e( 'Department:', 'nanosupport' ); ?></strong>
-										<div class="ns-small">
-											<?php echo ns_get_ticket_departments(); ?>
-										</div>
-									</div>
-									<div class="text-blocks">
-										<strong><?php esc_html_e( 'Created &amp; Updated:', 'nanosupport' ); ?></strong>
-										<div class="ns-small">
-											<?php echo ns_date_time( $post->post_date ); ?><br>
-											<?php echo ns_date_time( ns_get_ticket_modified_date($post->ID) ); ?>
-										</div>
-									</div>
-								</div>
-								<div class="ns-col-sm-3 ns-col-xs-4 ticket-meta">
-									<div class="text-blocks">
-										<strong><?php esc_html_e( 'Responses:', 'nanosupport' ); ?></strong><br>
+										<strong><?php _e( 'Responses:', 'nanosupport' ); ?></strong><br>
 										<?php
 										$response_count = wp_count_comments( get_the_ID() );
 										echo '<span class="responses-count">'. $response_count->approved .'</span>';
 										?>
 									</div>
-									<div class="text-blocks">
-										<strong><?php esc_html_e( 'Last Replied by:', 'nanosupport' ); ?></strong>
+										<div class="text-blocks">
+										<strong><?php _e( 'Last Replied by:', 'nanosupport' ); ?></strong><br>
 										<?php
 										$last_response  = ns_get_last_response();
 										$last_responder = get_userdata( $last_response['user_id'] );
-							            echo '<div class="ns-small">';
 							            if ( $last_responder ) {
 							                echo $last_responder->display_name, '<br>';
-						                	/* translators: time difference from current time. eg. 12 minutes ago */
-						                	printf( esc_html__( '%s ago', 'nanosupport' ), human_time_diff( strtotime($last_response['comment_date']), current_time('timestamp') ) );
+							                echo '<small>';
+							                	/* translators: time difference from current time. eg. 12 minutes ago */
+							                	printf( __( '%s ago', 'nanosupport' ), human_time_diff( strtotime($last_response['comment_date']), current_time('timestamp') ) );
+							                echo '</small>';
 							            } else {
-							                echo '&mdash;';
+							                echo '-';
 							            }
-							            echo '</div>';
 							            ?>
-									</div>
 								</div>
-							</div> <!-- /.ticket-additional -->
+								 <!--	<div class="text-blocks">
+										<strong><?php _e( 'Responses:', 'nanosupport' ); ?></strong><br>
+										<?php
+										$response_count = wp_count_comments( get_the_ID() );
+										echo '<span class="responses-count">'. $response_count->approved .'</span>';
+										?>
+									</div>  -->
+								</div> <!-- /.ticket-additional -->
 						</div> <!-- /.ns-row -->
 					</div> <!-- /.ticket-cards -->
 
-				<?php
+					<?php } else { ?>
+
+						<div class="ticket-cards ns-cards <?php echo esc_attr($highlight_class); ?>">
+						<div class="ns-row">
+							<div class="ns-col-sm-4 ns-col-xs-12">
+								<h3 class="ticket-head">
+										<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
+											<?php the_title(); ?>	
+										</a>
+									
+									<?php if( ns_is_user('agent_and_manager') ) : ?>
+										<span class="ticket-tools">
+											<?php edit_post_link( 'Edit', '', '', get_the_ID() ); ?>
+											<a class="ticket-view-link" href="<?php echo esc_url(get_the_permalink()); ?>" title="<?php esc_attr_e( 'Permanent link to the Ticket', 'nanosupport' ); ?>">
+												<?php _e( 'View', 'nanosupport' ); ?>
+											</a>
+										</span> <!-- /.ticket-tools -->
+									<?php endif; ?>
+								</h3>
+								<p><strong><?php _e( 'S/N', 'nanosupport' ); ?>: </strong><?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_serial_number', true )); ?></p>
+							</div>
+							<div class="ns-col-sm-2 ns-col-xs-12">
+
+								<?php $get_rma_number = get_post_meta( get_the_ID(), 'ns_internal_rma_number', true );
+
+								 if ( $get_rma_number ) { ?>
+									<div class="text-blocks">
+											<strong><?php _e( 'RMA Number', 'nanosupport' ); ?>:</strong></br>
+											<?php echo esc_attr( get_post_meta( get_the_ID(), 'ns_internal_rma_number', true )); ?>
+									</div>
+								<?php } //endif ?>
+							</div>
+							<div class="ns-col-sm-3 ns-col-xs-4 ticket-meta">
+								<div class="text-blocks">
+										<strong><?php _e( 'Issuse/Defective Part', 'nanosupport' ); ?>:</strong></br>
+										<?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_issuse', true )); ?>
+								</div>
+							</div>
+
+							<div class="ns-col-sm-3 ns-col-xs-4 ticket-meta">
+								<div class="text-blocks">
+									<div class="text-blocks ns-question-50">
+										<strong><?php _e( 'Ticket Status:', 'nanosupport' ); ?></strong><br>
+										<?php echo $ticket_meta['status']['label']; ?>
+										<?php if ($meta_data_additional_status != '') { ?>
+											<span class="ns-label ns-label-status-additional">
+												<?php echo $meta_data_additional_status; ?>
+											</span>
+										<?php } //endif ?>
+									</div>
+								</div> <!-- /.ticket-additional -->
+							</div>
+						</div> <!-- /.ns-row -->
+					</div> <!-- /.ticket-cards -->
+
+					<?php }
 				endwhile;
 
 
