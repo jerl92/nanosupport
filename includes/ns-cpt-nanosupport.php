@@ -111,11 +111,17 @@ add_action( 'admin_menu', 'ns_notification_bubble_in_nanosupport_menu' );
  */
 function ns_set_custom_columns( $columns ) {
     $new_columns = array(
+            'cb' => '<input type="checkbox" />',
+            'title' => __( 'RMA', 'nanosupport' ),
+            'number' => __( 'RMA Number', 'nanosupport' ),
+            'sn' => __( 'Serial Number', 'nanosupport' ),
+            'issues' => __( 'Issues', 'nanosupport' ),
             'ticket_status'     => __( 'Ticket Status', 'nanosupport' ),
-            'ticket_priority'   => __( 'Priority', 'nanosupport' ),
-            'ticket_agent'      => '<i class="dashicons dashicons-businessman" title="'. esc_attr__( 'Agent', 'nanosupport' ) .'"></i>',
             'ticket_responses'  => '<i class="dashicons dashicons-format-chat" title="'. esc_attr__( 'Responses', 'nanosupport' ) .'"></i>',
-            'last_response'     => __( 'Last Response by', 'nanosupport' )
+            'internal_note' => __( 'Internal Note', 'nanosupport' ),
+            'author'     => __( 'Author', 'nanosupport' ),
+            'languages'  => __( 'languages', 'nanosupport' ),
+            'date' => __( 'Date', 'nanosupport' )
         );
     return array_merge( $columns, $new_columns );
 }
@@ -140,21 +146,28 @@ function ns_populate_custom_columns( $column, $post_id ) {
     $ticket_meta = ns_get_ticket_meta( get_the_ID() );
 
     switch ( $column ) {
+
+        case 'number' :
+            echo get_post_meta( $post_id, 'ns_internal_rma_number', true );
+            break;
+
+        case 'sn' :
+            echo get_post_meta( $post_id, '_ns_ticket_serial_number', true );
+            break;
+        
+        case 'issues' :
+            echo get_post_meta( $post_id, '_ns_ticket_issuse', true );
+            break;
+
         case 'ticket_status' :
             echo $ticket_meta['status']['label'];
-            break;
-
-        case 'ticket_priority' :
-            echo $ticket_meta['priority']['label'];
-            break;
-
-        case 'ticket_agent' :
-            echo isset($ticket_meta['agent']['name']) ? $ticket_meta['agent']['name'] : '&mdash;';
             break;
 
         case 'ticket_responses' :
             $responses = wp_count_comments( $post_id );
             $response_count = $responses->approved;
+            $last_response  = ns_get_last_response( $post_id );
+            $last_responder = get_userdata( $last_response['user_id'] );
 
             if( ! empty($response_count) ) {
                 echo '<span class="responses-count" aria-hidden="true">'. $response_count .'</span>';
@@ -163,11 +176,7 @@ function ns_populate_custom_columns( $column, $post_id ) {
             } else {
                 echo '&mdash; <span class="screen-reader-text">'. __( 'No response yet', 'nanosupport' ) .'</span>';
             }
-            break;
-
-        case 'last_response' :
-            $last_response  = ns_get_last_response( $post_id );
-            $last_responder = get_userdata( $last_response['user_id'] );
+            echo '</br>';
             if ( $last_responder ) {
                 echo $last_responder->display_name, '<br>';
                 /* translators: time difference from current time. eg. 12 minutes ago */
@@ -176,6 +185,23 @@ function ns_populate_custom_columns( $column, $post_id ) {
                 echo '&mdash; <span class="screen-reader-text">'. __( 'No response yet', 'nanosupport' ) .'</span>';
             }
             break;
+
+        case 'internal_note' :
+            echo get_post_meta( $post_id, 'ns_internal_note', true );
+            break;
+
+        case 'languages' :
+            $fr_ = qtranxf_isAvailableIn($post_id, 'fr');
+            $en_ = qtranxf_isAvailableIn($post_id, 'en');
+            if ($fr_){
+               echo  __( 'French', 'nanosupport' );
+            }
+            echo '</br>';
+            if ($en_){
+               echo __( 'English', 'nanosupport' );
+            }
+            break;
+
     }
 }
 

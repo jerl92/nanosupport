@@ -296,6 +296,8 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
     $notify_agents_on_responses = isset($nanosupport_email_settings['email_choices']['agent_response']) && (int) $nanosupport_email_settings['email_choices']['agent_response'] === 1 ? true : false;
 
     $post_id = $comment_object->comment_post_ID;
+
+    remove_action( 'pre_post_update', 'nanosupport_email_on_ticket_update' );
     
     if( 'nanosupport' !== get_post_type($post_id) )
         return;
@@ -390,6 +392,8 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
 function ns_disable_wp_comment_notification( $emails, $comment_ID ) {
     $comment = get_comment( $comment_ID );
     $post_id = $comment->comment_post_ID;
+
+    remove_action( 'pre_post_update', 'nanosupport_email_on_ticket_update' );
 
     if( 'nanosupport' === get_post_type($post_id) ) {
         $emails = array('');
@@ -495,7 +499,7 @@ function nanosupport_email_on_ticket_update( $post ) {
     $ticket_new_response = $_POST['ns_new_response'];
     $ticket_internal_note = $_POST['ns_internal_note'];
 
-    if (empty($ticket_new_response) && $ticket_internal_note == $meta_data_internal_note ) {
+    if (empty($ticket_new_response) && $ticket_internal_note == $meta_data_internal_note ) :
 
         // Now hook the action
         // Email Content
@@ -543,8 +547,8 @@ function nanosupport_email_on_ticket_update( $post ) {
         // Send the email
         ns_email( $author_email, $subject, $email_subhead, $message );
 
-        add_action('pre_post_update', 'nanosupport_email_on_ticket_update');
+     //   add_action('pre_post_update', 'nanosupport_email_on_ticket_update');
 
-    }
+    endif;
 
 }
