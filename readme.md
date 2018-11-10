@@ -1,11 +1,35 @@
-![nanosupport-banner](https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png)
+<img src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" alt="From" data-canonical-src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" style="max-width:100%;"></br>
+
+<img src="https://img15.hostingpics.net/pics/253971samesnsunterra.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/253971samesnsunterra.png" style="max-width:100%;"></br>
+
+```js
+  $sn_args = array(
+      'fields' => 'ids',
+      'post_type'   => 'nanosupport',
+      'meta_query'  => array(
+          array(
+          'key' => '_ns_ticket_serial_number',
+          'value' => $meta_data_serial_number,
+          'compare' => '='
+          )
+      )
+  );
+  $my_query = new WP_Query( $sn_args );
+  $same_sn_count = $my_query->found_posts;
+```
+
+<img src="https://img15.hostingpics.net/pics/695743computerform.jpg" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/695743computerform.jpg" style="max-width:100%;"></br>
+
+<img src="https://img15.hostingpics.net/pics/252640sunterraadmin.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/252640sunterraadmin.png" style="max-width:100%;"></br>
+
+<img src="https://img15.hostingpics.net/pics/137536sunterraadmin2.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/137536sunterraadmin2.png" style="max-width:100%;"></br>
 
 # NanoSupport <kbd>[**DOWNLOAD**](https://wordpress.org/plugins/nanosupport/)</kbd>
 Smart Support Ticketing Plugin for WordPress
 
 | Requires | Tested up to | Stable Release | w.org Rating | License | w.org Downloads |
 |---|---|---|---|---|---|
-| WordPress 4.4.0 | [![Tested WordPress version](https://img.shields.io/wordpress/v/nanosupport.svg?style=flat-square)](https://wordpress.org/plugins/nanosupport/) | [![WordPress plugin](https://img.shields.io/wordpress/plugin/v/nanosupport.svg?style=flat-square)](https://wordpress.org/plugins/nanosupport/) | [![WordPress.org rating](https://img.shields.io/wordpress/plugin/r/nanosupport.svg?style=flat-square)](https://wordpress.org/support/plugin/nanosupport/reviews/) | [GPL-2.0+](http://www.gnu.org/licenses/gpl-2.0.txt) | [![Wordpress](https://img.shields.io/wordpress/plugin/dt/nanosupport.svg?style=flat-square)](https://wordpress.org/support/plugin/nanosupport/) |
+| WordPress 4.4.0 | ![Tested WordPress version](https://img.shields.io/wordpress/v/nanosupport.svg?style=flat) | ![WordPress plugin](https://img.shields.io/wordpress/plugin/v/nanosupport.svg?style=flat) | ![WordPress.org rating](https://img.shields.io/wordpress/plugin/r/nanosupport.svg?style=flat) | [GPL-2.0+](http://www.gnu.org/licenses/gpl-2.0.txt) | [![Wordpress](https://img.shields.io/wordpress/plugin/dt/nanosupport.svg?style=flat)]() |
 
 ## Introduction
 Create a fully featured Support Center within your WordPress environment without any third party system dependency &mdash; completely FREE. It has built-in Knowledgebase too. **No** 3rd party support ticketing system required, **no** external site/API dependency, **simply** create your own fully featured Support Center within your WordPress environment, and take your support into the next level.
@@ -26,7 +50,6 @@ The plugin is to provide support to your users - the users those are taking prod
 * Bengali (_Bangla_) - Bangladesh - `bn_BD`
 * Danish - Denmark - `da_DK` (thanks to @nh123 and @ellegaarddk)
 * Español - Spain - `es_ES` (thanks to @wptech68 and @fernandot)
-* Russian - Russia - `ru_RU` (thanks to @chubuk)
 
 ## Contribute
 NanoSupport is an Open Source and GPL licensed Free plugin. Feel free to contribute.
