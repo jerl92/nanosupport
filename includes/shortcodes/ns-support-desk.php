@@ -245,7 +245,7 @@ function ns_support_desk_page() {
 								<div class="text-blocks">				
 						
 									<?php if ( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ) != '' ) : ?>
-										<strong><a target="_blank" href="http://www.nationex.com/fr/reperage_multiple_colis_livraison.html"><?php _e( 'Nationex traking number', 'nanosupport' ); ?>:</a></strong><br>
+										<strong><a target="_blank" href="https://www.nationex.com/reperer/"><?php _e( 'Nationex traking number', 'nanosupport' ); ?>:</a></strong><br>
 										<?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true )); ?>
 									<?php endif; ?>
 									
@@ -256,7 +256,7 @@ function ns_support_desk_page() {
 								<?php if (( $ticket_meta['status']['value'] == 'return_to_sunterra' ) || ( $ticket_meta['status']['value'] == 'return_part_to_sunterra' ) || ( $ticket_meta['status']['value'] == 'return_laptop_evaluation' ) || ( $ticket_meta['status']['value'] == 'return_laptop_credit' )) :?>
 									<div class="text-blocks">	
 										<strong><?php _e( 'Need a pickup', 'nanosupport' ); ?>?</strong><br>
-										<a target="_blank" href="http://www.nationex.com/pickup_form.pdf"><?php _e( 'Download and fill the pickup form', 'nanosupport' ); ?></a><br>
+										<a target="_blank" href="https://www.nationex.com/wp-content/uploads/2017/08/cueillette_formulaire.pdf"><?php _e( 'Download and fill the pickup form', 'nanosupport' ); ?></a><br>
 									</div>
 								<?php endif; ?>
 
