@@ -81,7 +81,7 @@ function ns_scripts() {
         wp_enqueue_script( 'equal-height' );
     }
 
-    if( is_page( array( $support_desk, $submit_ticket, $knowledgebase ) ) || is_singular('nanosupport') || is_singular('nanodoc') ) {
+    if( is_page( array( $support_desk, $submit_ticket, $knowledgebase ) ) || is_singular('nanosupport') || is_singular('nanodoc') || is_search() ) {
         wp_enqueue_style( 'nanosupport' );
         wp_enqueue_script( 'nanosupport' );
     }

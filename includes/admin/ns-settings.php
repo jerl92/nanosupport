@@ -124,27 +124,6 @@ function nanosupport_settings_options_init(){
             'nanosupport_settings',                     // Page (Plugin)*
             'ns_general'                                // Section
         );
-        add_settings_field(
-            'is_priority_visible',                      // ID*
-            esc_html__( 'Is Priority Visible?', 'nanosupport' ), // Title*
-            'ns_is_priority_visible_field',             // Callback Function*
-            'nanosupport_settings',                     // Page (Plugin)*
-            'ns_general'                                // Section
-        );
-        add_settings_field(
-            'is_department_visible',                    // ID*
-            esc_html__( 'Is Departments Visible?', 'nanosupport' ), // Title*
-            'ns_is_department_visible_field',           // Callback Function*
-            'nanosupport_settings',                     // Page (Plugin)*
-            'ns_general'                                // Section
-        );
-        add_settings_field(
-            'embedded_login',                           // ID*
-            esc_html__( 'Enable Embedded Login?', 'nanosupport' ), // Title*
-            'ns_embedded_login_field',                  // Callback Function*
-            'nanosupport_settings',                     // Page (Plugin)*
-            'ns_general'                                // Section
-        );
 
     /**
      * Section: Account Settings
@@ -160,13 +139,6 @@ function nanosupport_settings_options_init(){
         'ns_account_settings_section_callback',         // Callback*
         'nanosupport_settings'                          // Page/Tab where to add the section of options*
     );
-        add_settings_field(
-            'account_creation',                         // ID*
-            esc_html__( 'Account Creation', 'nanosupport' ), // Title*
-            'ns_account_creation_field',                // Callback Function*
-            'nanosupport_settings',                     // Page (Plugin)*
-            'ns_account'                                // Section
-        );
 
     /**
      * Section: Ecommerce Settings

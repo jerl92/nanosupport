@@ -49,7 +49,7 @@ add_action( 'admin_enqueue_scripts', 'ns_dashboard_scripts' );
 function nanosupport_dashboard_widget() {
     wp_add_dashboard_widget(
         'nanosupport_widget',                   //dashboard ID
-        '<i class="ns-icon-nanosupport"></i> '. esc_html__( 'NanoSupport', 'nanosupport' ),     //widget name
+        '<i class="ns-icon-nanosupport"></i> '. esc_html__( 'RMA Sunterra', 'nanosupport' ),     //widget name
         'nanosupport_widget_callback'           //callback function
     );
 }
@@ -260,11 +260,6 @@ function nanosupport_widget_callback() { ?>
                 <?php } //agent only ?>
             </div>
         <?php } //administrator/editor ?>
-
-        <hr>
-        <div class="ns-text-center">
-            <?php printf( '<a href="https://wordpress.org/support/plugin/nanosupport/reviews#new-post" target="_blank">'. __( 'Rate us %s', 'nanosupport' ) .'</a>', '<i class="ns-icon-star-filled"></i><i class="ns-icon-star-filled"></i><i class="ns-icon-star-filled"></i><i class="ns-icon-star-filled"></i><i class="ns-icon-star-filled"></i>' ); ?> | <?php printf( '<a href="https://github.com/nanodesigns/nanosupport/issues/new" targe="_blank">'. __( 'Get Support', 'nanosupport' ). '</a>' ); ?> | <a href="http://nanodesignsbd.com?ref=nanosupport" target="_blank" title="nanodesigns - developer of the plugin"><strong>nano</strong>designs</a>
-        </div>
 
     </section>
 <?php

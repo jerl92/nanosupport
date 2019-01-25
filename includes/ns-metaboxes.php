@@ -24,6 +24,15 @@ function ns_responses_meta_box() {
         'high'                                      // 'high', 'core', 'default' or 'low'
     );
 
+    add_meta_box(
+        'nanosupport-metadata',                    // metabox ID
+        esc_html__( 'RMA Info', 'nanosupport' ),   // metabox title
+        'ns_control_specifics',                       // callback function
+        'nanosupport',                              // post type (+ CPT)
+        'side',                                   // 'normal', 'advanced', or 'side'
+        'default'                                      // 'high', 'core', 'default' or 'low'
+    );
+
     if( ns_is_user('agent_and_manager') ) :
 
         add_meta_box(
@@ -32,7 +41,7 @@ function ns_responses_meta_box() {
             'ns_internal_notes_specifics',          // callback function
             'nanosupport',                          // post type (+ CPT)
             'side',                                 // 'normal', 'advanced', or 'side'
-            'default'                               // 'high', 'core', 'default' or 'low'
+            'low'                               // 'high', 'core', 'default' or 'low'
         );
 
     endif;
@@ -170,7 +179,6 @@ function ns_internal_notes_specifics() {
     <?php
 }
 
-
 /**
  * NS Ticket Control Meta Fields.
  *
@@ -234,21 +242,19 @@ function ns_control_specifics() {
         <div class="row ns-control-holder">
 
             <div class="ns-row misc-pub-section">   
-                <div style="text-align: center;">
-                    <div class="ns-head-col">
-                        <span class="dashicons dashicons-shield"></span> <?php esc_html_e( 'RMA Author', 'nanosupport' );?>
-                    </div>
-                    <div class="ns-body-col">
-                        <div class="ns-field">
-                            <a href="<?php echo get_author_posts_url( $post->post_author ); ?>" class="ns-field-item" name="ns_internal_rma_author" id="ns-internal-rma-author ns-ticket-status" rows="5" readonly><?php echo  $meta_data_rma_author->first_name . ' ' . $meta_data_rma_author->last_name ?></a>
-                        </div> <!-- /.ns-field -->
-                    </div> <!-- /.ns-box -->
-                    <div class="ns-body-col">
-                        <div class="ns-field">
-                            <?php echo get_user_meta($meta_data_rma_author->ID, 'company_name', true) ?>
-                        </div> <!-- /.ns-field -->
-                    </div> <!-- /.ns-box -->
+                <div class="ns-head-col">
+                    <span class="dashicons dashicons-shield"></span> <?php esc_html_e( 'RMA Author', 'nanosupport' );?>
                 </div>
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <a href="<?php echo get_author_posts_url( $post->post_author ); ?>" class="ns-field-item" name="ns_internal_rma_author" id="ns-internal-rma-author ns-ticket-status" rows="5" readonly><?php echo  $meta_data_rma_author->first_name . ' ' . $meta_data_rma_author->last_name ?></a>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
+                <div class="ns-body-col">
+                    <div class="ns-field">
+                        <?php echo get_user_meta($meta_data_rma_author->ID, 'company_name', true) ?>
+                    </div> <!-- /.ns-field -->
+                </div> <!-- /.ns-box -->
             </div>
 
             <div class="ns-row misc-pub-section">
@@ -273,24 +279,6 @@ function ns_control_specifics() {
                             <option value="hold" <?php selected( $_ns_ticket_status, 'hold' ); ?>><?php esc_html_e( 'RMA on hold (Out of Stock)', 'nanosupport' ); ?></option>
                             <option value="return_laptop_evaluation" <?php selected( $_ns_ticket_status, 'return_laptop_evaluation' ); ?>><?php esc_html_e( 'Return the laptop for evaluation', 'nanosupport' ); ?></option>
                             <option value="return_laptop_credit" <?php selected( $_ns_ticket_status, 'return_laptop_credit' ); ?>><?php esc_html_e( 'Return the laptop for credit', 'nanosupport' ); ?></option>
-                        </select>
-                    </div> <!-- /.ns-field -->                    
-                </div>
-            </div> <!-- /.ns-row -->
-
-            <div class="ns-row misc-pub-section">
-                <div class="ns-head-col">
-                    <i class="dashicons dashicons-sort"></i> <?php esc_html_e( 'Priority', 'nanosupport' );
-                    echo ns_tooltip( 'ns-ticket-priority-tooltip', esc_html__( 'Change the priority as per the content and urgency of the ticket.', 'nanosupport' ), 'left' );
-                    ?>
-                </div>
-                <div class="ns-body-col">
-                    <div class="ns-field">
-                        <select name="ns_ticket_priority" class="ns-field-item" id="ns-ticket-priority" aria-describedby="ns-ticket-priority-tooltip" required>
-                            <option value="low" <?php selected( $_ns_ticket_priority, 'low' ); ?>><?php esc_html_e( 'Low', 'nanosupport' ); ?></option>
-                            <option value="medium" <?php selected( $_ns_ticket_priority, 'medium' ); ?>><?php esc_html_e( 'Medium', 'nanosupport' ); ?></option>
-                            <option value="high" <?php selected( $_ns_ticket_priority, 'high' ); ?>><?php esc_html_e( 'High', 'nanosupport' ); ?></option>
-                            <option value="critical" <?php selected( $_ns_ticket_priority, 'critical' ); ?>><?php esc_html_e( 'Critical', 'nanosupport' ); ?></option>
                         </select>
                     </div> <!-- /.ns-field -->                    
                 </div>
@@ -505,7 +493,7 @@ function ns_control_specifics() {
     endif;
 }
 
-add_action('post_submitbox_misc_actions', 'ns_control_specifics');
+// add_action('post_submitbox_misc_actions', 'ns_control_specifics');
 
 
 // Save the Data
@@ -627,20 +615,36 @@ function ns_save_nanosupport_meta_data( $post_id ) {
         delete_post_meta( $post_id, 'ns_internal_note', $existing_internal_note );
     }
 
-        /**
+    /**
      * Save Internal RMA Number.
      * ...
      */
     $internal_rma_number          = $_POST['ns_internal_rma_number'];
     $existing_internal_rma_number = get_post_meta( $post_id, 'ns_internal_rma_number', true );
 
-    if( $internal_rma_number && $internal_rma_number != $existing_internal_rma_number ) {
-        // Sanitize internal note
-        $internal_rma_number = wp_kses( $internal_rma_number, ns_allowed_html() );
+    $args = array(
+        'post_type'      => 'nanosupport',
+        'posts_per_page' => -1,
+        'post_status' =>'any',
+        'meta_key'       => 'ns_internal_rma_number',
+        'meta_value'       => $internal_rma_number
+    );
 
-        update_post_meta( $post_id, 'ns_internal_rma_number', $internal_rma_number );
-    } elseif( '' == $internal_rma_number && $existing_internal_rma_number ) {
-        delete_post_meta( $post_id, 'ns_internal_rma_number', $existing_internal_rma_number );
+    $my_posts = get_posts( $args );
+    $rma_number_exist = 0;
+    if( $my_posts ) {
+        $rma_number_exist = 1;
+    }
+
+    if ( $rma_number_exist == 0 ) {
+        if( $internal_rma_number && $internal_rma_number != $existing_internal_rma_number ) {
+            // Sanitize internal note
+            // $internal_rma_number = wp_kses( $internal_rma_number, ns_allowed_html() );
+
+            update_post_meta( $post_id, 'ns_internal_rma_number', $internal_rma_number );
+        } elseif( '' == $internal_rma_number && $existing_internal_rma_number ) {
+            delete_post_meta( $post_id, 'ns_internal_rma_number', $existing_internal_rma_number );
+        }
     }
 
     /**

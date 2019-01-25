@@ -154,7 +154,7 @@ function nanosupport_new_ticket_notification_email( $new_status, $old_status, $p
             $message
         );
 
-        elseif( 'nanosupport' === $post->post_type && '' === $old_status && 'solved' === $new_status ) :
+        elseif( 'nanosupport' === $post->post_type && 'solved' === $new_status ) :
 
         $ticket_id = $post->ID;
 
@@ -516,11 +516,41 @@ function nanosupport_email_on_ticket_update( $post ) {
 
         $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_internal_rma_number'] .'</p>';
 
+        if( 'pending' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-normal">'. __( 'Pending', 'nanosupport' ) .'</span>';
+        } elseif( 'solved' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-success">'. __( 'Solved', 'nanosupport' ) .'</span>';
+        } elseif( 'shipping_back' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Shipping back', 'nanosupport' ) .'</span>';
+        } elseif( 'inspection' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Under Inspection', 'nanosupport' ) .'</span>';
+        } elseif( 'pending' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Pending', 'nanosupport' ) .'</span>';
+        } elseif( 'open' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Open', 'nanosupport' ) .'</span>';
+        } elseif( 'return_to_sunterra' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return computer to Sunterra', 'nanosupport' ) .'</span>';
+        } elseif( 'return_part_to_sunterra' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return computer part to Sunterra for exchange', 'nanosupport' ) .'</span>';
+        } elseif( 'send_part_wo_return' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Sending computer part without return', 'nanosupport' ) .'</span>';
+        } elseif( 'part_in_order' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Part in order', 'nanosupport' ) .'</span>';
+        } elseif( 'refused' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-refuse">'. __( 'RMA refused', 'nanosupport' ) .'</span>';
+        } elseif( 'hold' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'RMA on hold (Out of Stock)', 'nanosupport' ) .'</span>';
+        } elseif( 'return_laptop_evaluation' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for evaluation', 'nanosupport' ) .'</span>';
+        } elseif( 'return_laptop_credit' === $_POST['ns_ticket_status'] ) {
+            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for credit', 'nanosupport' ) .'</span>';
+        }
+
         if ( $_POST['ns_ticket_status'] != $ticket_meta['status']['value']  ) {
 
             $message .= '<p style="margin: 10px 0 0;">'. __( 'RMA status', 'nanosupport' ) .'</p>';
 
-            $message .= '<p style="margin: 0 0 5px;font-style: italic">'.  $_POST['ns_ticket_status'] .'</p>';
+            $message .= '<p style="margin: 0 0 5px;font-style: italic">'. $ticket_status .'</p>';
 
          }
 
@@ -544,10 +574,24 @@ function nanosupport_email_on_ticket_update( $post ) {
 
         $message .= '<p style="margin: 0 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
         
-        // Send the email
-        ns_email( $author_email, $subject, $email_subhead, $message );
+        $args = array(
+            'post_type'      => 'nanosupport',
+            'posts_per_page' => -1,
+            'post_status' =>'any',
+            'meta_key'       => 'ns_internal_rma_number',
+            'meta_value'       => $_POST['ns_internal_rma_number']
+        );
 
-     //   add_action('pre_post_update', 'nanosupport_email_on_ticket_update');
+        $my_posts = get_posts( $args );
+        if( !$my_posts ) {
+            ns_email( $author_email, $subject, $email_subhead, $message );
+        } else {
+            if ( $my_posts[0]->ID == get_the_ID($post) ) {
+                ns_email( $author_email, $subject, $email_subhead, $message );
+            }
+        }
+
+        //add_action('pre_post_update', 'nanosupport_email_on_ticket_update');
 
     endif;
 

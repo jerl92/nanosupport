@@ -110,6 +110,11 @@ add_action( 'admin_menu', 'ns_notification_bubble_in_nanosupport_menu' );
  * -----------------------------------------------------------------------
  */
 function ns_set_custom_columns( $columns ) {
+    unset($columns['date']);
+    unset($columns['department']);
+    unset($columns['author']);
+    unset($columns['language']);
+    unset($columns['taxonomy-nanosupport_department']);
     $new_columns = array(
             'cb' => '<input type="checkbox" />',
             'title' => __( 'RMA', 'nanosupport' ),
@@ -117,11 +122,10 @@ function ns_set_custom_columns( $columns ) {
             'sn' => __( 'Serial Number', 'nanosupport' ),
             'issues' => __( 'Issues', 'nanosupport' ),
             'ticket_status'     => __( 'Ticket Status', 'nanosupport' ),
-            'ticket_responses'  => '<i class="dashicons dashicons-format-chat" title="'. esc_attr__( 'Responses', 'nanosupport' ) .'"></i>',
             'internal_note' => __( 'Internal Note', 'nanosupport' ),
-            'author'     => __( 'Author', 'nanosupport' ),
             'languages'  => __( 'languages', 'nanosupport' ),
-            'date' => __( 'Date', 'nanosupport' )
+            'ticket_responses'  => '<i class="dashicons dashicons-format-chat" title="'. esc_attr__( 'Responses', 'nanosupport' ) .'"></i>',
+            'author'     => __( 'Author', 'nanosupport' )
         );
     return array_merge( $columns, $new_columns );
 }
@@ -226,41 +230,24 @@ function ns_admin_tickets_filter() {
 
     if ('nanosupport' === $post_type) {
 
-        $priority_values = array(
-            esc_html__( 'Critical', 'nanosupport' ) => 'critical', 
-            esc_html__( 'High', 'nanosupport' )     => 'high',
-            esc_html__( 'Medium', 'nanosupport' )   => 'medium',
-            esc_html__( 'Low', 'nanosupport' )      => 'low'
-        );
-        ?>
-
-        <select name="ticket_priority">
-            <option value=""><?php esc_html_e('Filter by Priority', 'nanosupport'); ?></option>
-            <?php
-                $priority_filter = filter_input(INPUT_GET, 'ticket_priority', FILTER_SANITIZE_STRING);
-                foreach ($priority_values as $label => $value) :
-                    printf (
-                        '<option value="%s"%s>%s</option>',
-                        $value,
-                        $value === $priority_filter ? ' selected="selected"' : '',
-                        $label
-                    );
-                endforeach;
-            ?>
-        </select>
-
-        <?php
-
         $ticket_status_values = array(
-            esc_html__( 'Pending', 'nanosupport' )          => 'pending', 
-            esc_html__( 'Open', 'nanosupport' )             => 'open',
-            esc_html__( 'Under Inspection', 'nanosupport' ) => 'inspection',
-            esc_html__( 'Solved', 'nanosupport' )           => 'solved'
+            esc_html__( 'Pending', 'nanosupport' )                                              => 'pending',
+            esc_html__( 'Open', 'nanosupport' )                                                 => 'open',
+            esc_html__( 'Under Inspection', 'nanosupport' )                                     => 'inspection',
+            esc_html__( 'Shipping back to Customer', 'nanosupport' )                            => 'shipping_back',
+            esc_html__( 'Return computer for reparation or exchange', 'nanosupport' )           => 'return_to_sunterra',
+            esc_html__( 'Return computer part for exchange', 'nanosupport' )                    => 'return_part_to_sunterra',
+            esc_html__( 'Sending computer part without return', 'nanosupport' )                 => 'send_part_wo_return',
+            esc_html__( 'Part in order', 'nanosupport' )                                        => 'part_in_order',
+            esc_html__( 'RMA refused', 'nanosupport' )                                          => 'refused',
+            esc_html__( 'RMA on hold (Out of Stock)', 'nanosupport' )                           => 'hold',
+            esc_html__( 'Return the laptop for evaluation', 'nanosupport' )                     => 'return_laptop_evaluation',
+            esc_html__( 'Return the laptop for credit', 'nanosupport' )                         => 'return_laptop_credit'
         );
         ?>
 
         <select name="ticket_status">
-            <option value=""><?php esc_html_e('Filter by Ticket Status', 'nanosupport'); ?></option>
+            <option value=""><?php esc_html_e('All Ticket Status', 'nanosupport'); ?></option>
             <?php
                 $status_filter = filter_input(INPUT_GET, 'ticket_status', FILTER_SANITIZE_STRING);
                 foreach ($ticket_status_values as $label => $value) :
@@ -275,36 +262,33 @@ function ns_admin_tickets_filter() {
         </select>
 
         <?php
-        if( ! ns_is_user('agent') ) :
-
-            $agents = get_users(array(
-                'meta_key'   => 'ns_make_agent',
-                'meta_value' => 1
-            ));
-            ?>
-
-            <select name="agent">
-                <option value=""><?php esc_html_e('Filter by Agent', 'nanosupport'); ?></option>
-                <?php
-                    $agent_filter = filter_input(INPUT_GET, 'agent', FILTER_SANITIZE_NUMBER_INT);
-                    foreach ($agents as $agent) :
-                        printf (
-                            '<option value="%s"%s>%s</option>',
-                            $agent->ID,
-                            $agent->ID == $agent_filter ? ' selected="selected"' : '',
-                            $agent->data->display_name
-                        );
-                    endforeach;
-                ?>
-            </select>
-
-        <?php
-        endif;
     }
 }
 
 add_action( 'restrict_manage_posts', 'ns_admin_tickets_filter' );
 
+add_filter( 'manage_edit-nanosupport_sortable_columns', 'my_sortable_nanosupport_column' );
+function my_sortable_nanosupport_column( $columns ) {
+    $columns['number'] = 'number';
+ 
+    //To make a column 'un-sortable' remove it from the array
+    //unset($columns['date']);
+ 
+    return $columns;
+}
+
+add_action( 'pre_get_posts', 'my_number_orderby' );
+function my_number_orderby( $query ) {
+    if( ! is_admin() )
+        return;
+ 
+    $orderby = $query->get( 'orderby');
+ 
+    if( 'number' == $orderby ) {
+        $query->set('meta_key','ns_internal_rma_number');
+        $query->set('orderby','meta_value_max');
+    }
+}
 
 /**
  * Filter Admin Tickets based on Filter.
@@ -321,55 +305,23 @@ function ns_admin_tickets_filter_query( $query ){
     global $pagenow;
 
     $post_type = filter_input(INPUT_GET, 'post_type', FILTER_SANITIZE_STRING);
-    $post_type = ! empty($post_type) ? $post_type : 'post';
 
     if ( is_admin() && 'nanosupport' === $post_type && 'edit.php' === $pagenow ) {
 
-        $priority_filter = filter_input(INPUT_GET, 'ticket_priority', FILTER_SANITIZE_STRING);
         $status_filter   = filter_input(INPUT_GET, 'ticket_status', FILTER_SANITIZE_STRING);
-        $agent_filter    = filter_input(INPUT_GET, 'agent', FILTER_SANITIZE_NUMBER_INT);
 
         $_meta_query = array();
 
-        if( ns_is_user('agent') ) {
-            global $current_user;
-            $query->set( 'author__in', $current_user->ID );
-            $_meta_query[] = array(
-                'key'     => '_ns_ticket_agent',
-                'value'   => $current_user->ID,
-                'compare' => '='
-            );
-        }
-
-        if( $priority_filter ) {
-            $_meta_query[] = array(
-                'key'   => '_ns_ticket_priority',
-                'value' => $priority_filter
-            );
-        }
-
         if( $status_filter ) {
-            if( 'pending' === $status_filter ) {
-                $query->query_vars['post_status'] = 'pending';
-            } else {
-                $query->query_vars['post_status'] = 'private';
-                $_meta_query[] = array(
-                    'key'   => '_ns_ticket_status',
-                    'value' => $status_filter
-                );
-            }
-        }
-
-        if( $agent_filter ) {
             $_meta_query[] = array(
-                'key'   => '_ns_ticket_agent',
-                'value' => $agent_filter
+                'key'   => '_ns_ticket_status',
+                'value' => $status_filter
             );
         }
 
         // If any of 2 or more filter present at once.
         // @link https://stackoverflow.com/a/39484680/1743124
-        if( count( array_filter(array($priority_filter,$status_filter,$agent_filter)) ) >= 2 ) :
+        if( count( array_filter(array($status_filter)) ) >= 2 ) :
             $_meta_query['relation'] = 'AND';
         endif;
 
@@ -415,8 +367,8 @@ function ns_create_nanosupport_taxonomies() {
         'public'            => false,
         'show_tagcloud'     => false,
         'labels'            => $labels,
-        'show_ui'           => true,
-        'show_admin_column' => true,
+        'show_ui'           => false,
+        'show_admin_column' => false,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'support-departments' ),
         'capabilities'      => array(
@@ -539,3 +491,27 @@ function ns_help_text_to_post_author( $output )  {
 }
 
 add_filter( 'wp_dropdown_users', 'ns_help_text_to_post_author' );
+
+add_filter( 'posts_join', 'segnalazioni_search_join' );
+function segnalazioni_search_join ( $join ) {
+    global $pagenow, $wpdb;
+
+    // I want the filter only when performing a search on edit page of Custom Post Type named "segnalazioni".
+    if ( is_admin() && 'edit.php' === $pagenow && 'nanosupport' === $_GET['post_type'] && ! empty( $_GET['s'] ) ) {    
+        $join .= 'LEFT JOIN ' . $wpdb->postmeta . ' ON ' . $wpdb->posts . '.ID = ' . $wpdb->postmeta . '.post_id ';
+    }
+    return $join;
+}
+
+add_filter( 'posts_where', 'segnalazioni_search_where' );
+function segnalazioni_search_where( $where ) {
+    global $pagenow, $wpdb;
+
+    // I want the filter only when performing a search on edit page of Custom Post Type named "segnalazioni".
+    if ( is_admin() && 'edit.php' === $pagenow && 'nanosupport' === $_GET['post_type'] && ! empty( $_GET['s'] ) ) {
+        $where = preg_replace(
+            "/\(\s*" . $wpdb->posts . ".post_title\s+LIKE\s*(\'[^\']+\')\s*\)/",
+            "(" . $wpdb->posts . ".post_title LIKE $1) OR (" . $wpdb->postmeta . ".meta_value LIKE $1)", $where );
+    }
+    return $where;
+}
