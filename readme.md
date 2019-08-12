@@ -1,21 +1,5 @@
 <img src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" alt="From" data-canonical-src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" style="max-width:100%;"></br>
 
-```js
-  $sn_args = array(
-      'fields' => 'ids',
-      'post_type'   => 'nanosupport',
-      'meta_query'  => array(
-          array(
-          'key' => '_ns_ticket_serial_number',
-          'value' => $meta_data_serial_number,
-          'compare' => '='
-          )
-      )
-  );
-  $my_query = new WP_Query( $sn_args );
-  $same_sn_count = $my_query->found_posts;
-```
-
 # NanoSupport <kbd>[**DOWNLOAD**](https://wordpress.org/plugins/nanosupport/)</kbd>
 Smart Support Ticketing Plugin for WordPress
 
