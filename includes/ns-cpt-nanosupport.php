@@ -3,7 +3,7 @@
  * CPT 'nanosupport' and Taxonomy
  *
  * Functions to initiate the Custom Post Type 'nanosupport'
- * and Taxonomy 'nanosupport_department'.
+ * and Taxonomy 'nanosupport_Status'.
  *
  * @author      nanodesigns
  * @category    Tickets
@@ -53,10 +53,10 @@ function ns_register_cpt_nanosupport() {
         'show_ui'				=> true,
         'show_in_menu'			=> true,
         'menu_position'			=> 29,
-        	'show_in_nav_menus'		=> false,
+        'show_in_nav_menus'		=> false,
         'publicly_queryable'	=> true,
         'exclude_from_search'	=> false,
-        	'has_archive'			=> false,
+        'has_archive'			=> false,
         'query_var'				=> true,
         'can_export'			=> true,
         'rewrite'				=> array( 'slug' => 'support' ),
@@ -72,6 +72,119 @@ function ns_register_cpt_nanosupport() {
 
 add_action( 'init', 'ns_register_cpt_nanosupport' );
 
+function mw_enqueue_color_picker() {
+    // first check that $hook_suffix is appropriate for your admin page
+    wp_enqueue_style( 'wp-color-picker' );
+    wp_enqueue_script('nanosupport-color-picker-script', NS()->plugin_url() .'/assets/js/color-picker.js', array('wp-color-picker'), false, true );
+}
+add_action( 'admin_enqueue_scripts', 'mw_enqueue_color_picker' );
+
+// A callback function to add a custom field to our "presenters" taxonomy  
+function presenters_taxonomy_custom_fields($tag) { 
+    // Check for existing taxonomy meta for the term you're editing  
+     $t_id = $tag->term_id; // Get the ID of the term you're editing
+     $get_term_color = get_term_meta($t_id, 'meta_color', true);
+     $get_term_shipping = get_term_meta($t_id, 'meta_shipping', true);
+     $get_term_hide_rma = get_term_meta($t_id, 'meta_hide_rma', true);
+ ?>  
+
+<tr class="form-field">  
+     <th scope="row" valign="top">  
+         <label for="presenter_id"><?php _e('Do not show RMA number'); ?></label>  
+     </th>  
+     <td>  
+        <?php if ( $get_term_hide_rma == 1 ) {
+            echo '<input type="checkbox" name="meta_hide_rma" checked="checked" value="1" class="my-rma-field" ></input>';
+            echo '<p></p>';
+        } else {
+            echo '<input type="checkbox" name="meta_hide_rma" value="1" class="my-rma-field" ></input>';
+            echo '<p></p>';
+        } ?>
+     </td>  
+ </tr>
+   
+ <tr class="form-field">  
+     <th scope="row" valign="top">  
+         <label for="presenter_id"><?php _e('Status color'); ?></label>  
+     </th>  
+     <td>  
+        <?php echo '<input type="text" name="meta_color" id="meta_color" value="'. $get_term_color .'" class="my-color-field" ></input>' ?>
+     </td>  
+ </tr>
+
+ <tr class="form-field">  
+     <th scope="row" valign="top">  
+         <label for="presenter_id"><?php _e( 'Shipping information', 'nanosupport' ); ?></label>  
+     </th>  
+     <td>
+        <?php if ( $get_term_shipping == 1 ) {
+            echo '<input type="radio" name="meta_shipping" value="0">'. __( 'Dont show shipping/return information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" checked="checked" value="1">'. __( 'Show shipping information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" value="2">'. __( 'Show return information', 'nanosupport' ) .'</input>';
+            echo '<p></p>';
+        } elseif ( $get_term_shipping == 2 ) {
+            echo '<input type="radio" name="meta_shipping" value="0">'. __( 'Dont show shipping/return information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" value="1">'. __( 'Show shipping information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" checked="checked" value="2">'. __( 'Show return information', 'nanosupport' ) .'</input>';
+            echo '<p></p>';
+        } else {
+            echo '<input type="radio" name="meta_shipping" checked="checked" value="0">'. __( 'Dont show shipping/return information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" value="1">'. __( 'Show shipping information', 'nanosupport' ) .'</input><br>';
+            echo '<input type="radio" name="meta_shipping" value="2">'. __( 'Show return information', 'nanosupport' ) .'</input>';
+            echo '<p></p>';
+        } ?>
+     </td>  
+ </tr> 
+   
+ <?php  
+ }  
+
+ // A callback function to save our extra taxonomy field(s)  
+ function save_taxonomy_custom_meta( $term_id ) {
+    if ( isset($_POST['meta_color']) ) {
+        update_term_meta( $term_id, 'meta_color', esc_attr($_POST['meta_color']) );
+    }
+
+    if ( isset($_POST['meta_shipping']) ) {
+        update_term_meta( $term_id, 'meta_shipping', intval($_POST['meta_shipping']) );
+    }
+
+    if ( isset($_POST['meta_hide_rma']) ) {
+        update_term_meta( $term_id, 'meta_hide_rma', intval($_POST['meta_hide_rma']) );
+    }
+} 
+
+// Add the fields to the "presenters" taxonomy, using our callback function  
+add_action( 'nanosupport_status_edit_form_fields', 'presenters_taxonomy_custom_fields', 10, 2 );  
+add_action( 'nanosupport_status_add_form_fields', 'presenters_taxonomy_custom_fields', 10, 2 ); 
+
+// Save the changes made on the "presenters" taxonomy, using our callback function  
+add_action( 'edited_nanosupport_status', 'save_taxonomy_custom_meta', 10, 2 ); 
+add_action( 'create_nanosupport_status', 'save_taxonomy_custom_meta', 10, 2 ); 
+
+/**
+ * Register columns for our taxonomy
+ */
+function gwp_register_category_columns( $columns ) {
+    $new_columns = array(
+            'color' => __( 'Color', 'generatewp' ),
+        );
+    return array_merge( $columns, $new_columns );
+}
+add_filter( 'manage_edit-nanosupport_status_columns', 'gwp_register_category_columns' );
+
+function gwp_category_column_display( $string = '', $column, $term_id ) {
+
+    switch ( $column ) {
+        case 'color' :   
+            $get_term_color = get_term_meta($term_id, 'meta_color', true);
+            echo '<div style="padding: 15px; background-color: '. $get_term_color .'"></div>';
+            break;
+
+    }
+
+}
+add_filter( 'manage_nanosupport_status_custom_column', 'gwp_category_column_display', 10, 3 );
 
 /**
  * Show pending count on menu.
@@ -114,18 +227,22 @@ function ns_set_custom_columns( $columns ) {
     unset($columns['department']);
     unset($columns['author']);
     unset($columns['language']);
+    unset($columns['taxonomy-nanosupport_form_factor']);
+    unset($columns['taxonomy-nanosupport_status']);
     unset($columns['taxonomy-nanosupport_department']);
     $new_columns = array(
             'cb' => '<input type="checkbox" />',
             'title' => __( 'RMA', 'nanosupport' ),
             'number' => __( 'RMA Number', 'nanosupport' ),
+            'form_factor' => __( 'From Factor', 'nanosupport' ),
             'sn' => __( 'Serial Number', 'nanosupport' ),
             'issues' => __( 'Issues', 'nanosupport' ),
             'ticket_status'     => __( 'Ticket Status', 'nanosupport' ),
             'internal_note' => __( 'Internal Note', 'nanosupport' ),
             'languages'  => __( 'languages', 'nanosupport' ),
             'ticket_responses'  => '<i class="dashicons dashicons-format-chat" title="'. esc_attr__( 'Responses', 'nanosupport' ) .'"></i>',
-            'author'     => __( 'Author', 'nanosupport' )
+            'author'     => __( 'Author', 'nanosupport' ),
+            'created_date'     => __( 'Created date', 'nanosupport' ),
         );
     return array_merge( $columns, $new_columns );
 }
@@ -148,11 +265,28 @@ add_filter( 'manage_nanosupport_posts_columns', 'ns_set_custom_columns' );
 function ns_populate_custom_columns( $column, $post_id ) {
 
     $ticket_meta = ns_get_ticket_meta( get_the_ID() );
+    $_ns_ticket_form_factor   = get_post_meta( $post_id, '_ns_ticket_form_factor', true );
+
+    $form_factor_terms = get_terms( array(
+        'taxonomy' => 'nanosupport_form_factor',
+        'hide_empty' => false,
+    ) );
 
     switch ( $column ) {
 
         case 'number' :
             echo get_post_meta( $post_id, 'ns_internal_rma_number', true );
+            break;
+
+        case 'form_factor' :
+            if ( $form_factor_terms ) {
+                foreach ( $form_factor_terms as $form_factor_term ) {
+                    if ( $_ns_ticket_form_factor == $form_factor_term->slug ) {
+                        $lang_text_term = qtranxf_use(qtranxf_getLanguage(), $form_factor_term->name);
+                        echo $lang_text_term;
+                    }
+                }
+            }
             break;
 
         case 'sn' :
@@ -205,6 +339,9 @@ function ns_populate_custom_columns( $column, $post_id ) {
                echo __( 'English', 'nanosupport' );
             }
             break;
+        case 'created_date' :
+            echo get_the_date();
+            break;
 
     }
 }
@@ -230,27 +367,51 @@ function ns_admin_tickets_filter() {
 
     if ('nanosupport' === $post_type) {
 
-        $ticket_status_values = array(
-            esc_html__( 'Pending', 'nanosupport' )                                              => 'pending',
-            esc_html__( 'Open', 'nanosupport' )                                                 => 'open',
-            esc_html__( 'Under Inspection', 'nanosupport' )                                     => 'inspection',
-            esc_html__( 'Shipping back to Customer', 'nanosupport' )                            => 'shipping_back',
-            esc_html__( 'Return computer for reparation or exchange', 'nanosupport' )           => 'return_to_sunterra',
-            esc_html__( 'Return computer part for exchange', 'nanosupport' )                    => 'return_part_to_sunterra',
-            esc_html__( 'Sending computer part without return', 'nanosupport' )                 => 'send_part_wo_return',
-            esc_html__( 'Part in order', 'nanosupport' )                                        => 'part_in_order',
-            esc_html__( 'RMA refused', 'nanosupport' )                                          => 'refused',
-            esc_html__( 'RMA on hold (Out of Stock)', 'nanosupport' )                           => 'hold',
-            esc_html__( 'Return the laptop for evaluation', 'nanosupport' )                     => 'return_laptop_evaluation',
-            esc_html__( 'Return the laptop for credit', 'nanosupport' )                         => 'return_laptop_credit'
-        );
+        $status_terms = get_terms( array(
+            'taxonomy' => 'nanosupport_status',
+            'hide_empty' => true,
+        ) );
+
+        $form_factor_terms = get_terms( array(
+            'taxonomy' => 'nanosupport_form_factor',
+            'hide_empty' => true,
+        ) );
+
+        if ( $status_terms ) {
+            foreach ( $status_terms as $status_term ) {
+                $lang_text_term = qtranxf_use(qtranxf_getLanguage(), $status_term->name);
+                $ticket_status_values[$status_term->slug] = $lang_text_term;
+            }
+        }
+
+        if ( $form_factor_terms ) {
+            foreach ( $form_factor_terms as $form_factor_term ) {
+                $lang_text_term = qtranxf_use(qtranxf_getLanguage(), $form_factor_term->name);
+                $ticket_form_factor_values[$form_factor_term->slug] = $lang_text_term;
+            }
+        }
         ?>
 
         <select name="ticket_status">
             <option value=""><?php esc_html_e('All Ticket Status', 'nanosupport'); ?></option>
             <?php
                 $status_filter = filter_input(INPUT_GET, 'ticket_status', FILTER_SANITIZE_STRING);
-                foreach ($ticket_status_values as $label => $value) :
+                foreach ($ticket_status_values as $value => $label) :
+                    printf (
+                        '<option value="%s"%s>%s</option>',
+                        $value,
+                        $value === $status_filter ? ' selected="selected"' : '',
+                        $label
+                    );
+                endforeach;
+            ?>
+        </select>
+
+        <select name="ticket_form_factor">
+            <option value=""><?php esc_html_e('All Ticket Form Factor', 'nanosupport'); ?></option>
+            <?php
+                $status_filter = filter_input(INPUT_GET, 'ticket_form_factor', FILTER_SANITIZE_STRING);
+                foreach ($ticket_form_factor_values as $value => $label) :
                     printf (
                         '<option value="%s"%s>%s</option>',
                         $value,
@@ -309,13 +470,22 @@ function ns_admin_tickets_filter_query( $query ){
     if ( is_admin() && 'nanosupport' === $post_type && 'edit.php' === $pagenow ) {
 
         $status_filter   = filter_input(INPUT_GET, 'ticket_status', FILTER_SANITIZE_STRING);
+        $form_factor_filter   = filter_input(INPUT_GET, 'ticket_form_factor', FILTER_SANITIZE_STRING);
 
         $_meta_query = array();
+        $_meta_form_query = array();
 
         if( $status_filter ) {
             $_meta_query[] = array(
                 'key'   => '_ns_ticket_status',
                 'value' => $status_filter
+            );
+        }
+
+        if( $form_factor_filter ) {
+            $_meta_form_query[] = array(
+                'key'   => '_ns_ticket_form_factor',
+                'value' => $form_factor_filter
             );
         }
 
@@ -325,8 +495,16 @@ function ns_admin_tickets_filter_query( $query ){
             $_meta_query['relation'] = 'AND';
         endif;
 
+        if( count( array_filter(array($form_factor_filter)) ) >= 2 ) :
+            $_meta_form_query['relation'] = 'AND';
+        endif;
+
         if( !empty($_meta_query) ) {
             $query->set( 'meta_query', $_meta_query );
+        }
+
+        if( !empty($_meta_form_query) ) {
+            $query->set( 'meta_query', $_meta_form_query );
         }
         
     }
@@ -349,43 +527,153 @@ add_filter( 'parse_query', 'ns_admin_tickets_filter_query' );
 function ns_create_nanosupport_taxonomies() {
 
     $labels = array(
-        'name'              => __( 'Departments', 'nanosupport' ),
-        'singular_name'     => __( 'Department', 'nanosupport' ),
-        'search_items'      => __( 'Search Departments', 'nanosupport' ),
-        'all_items'         => __( 'All Departments', 'nanosupport' ),
-        'parent_item'       => __( 'Parent Department', 'nanosupport' ),
-        'parent_item_colon' => __( 'Parent Department:', 'nanosupport' ),
-        'edit_item'         => __( 'Edit Departments', 'nanosupport' ),
-        'update_item'       => __( 'Update Departments', 'nanosupport' ),
-        'add_new_item'      => __( 'Add New Department', 'nanosupport' ),
-        'new_item_name'     => __( 'New Department Name', 'nanosupport' ),
-        'menu_name'         => __( 'Departments', 'nanosupport' ),
+        'name'              => __( 'Status', 'nanosupport' ),
+        'singular_name'     => __( 'Status', 'nanosupport' ),
+        'search_items'      => __( 'Search Status', 'nanosupport' ),
+        'all_items'         => __( 'All Status', 'nanosupport' ),
+        'parent_item'       => __( 'Parent Status', 'nanosupport' ),
+        'parent_item_colon' => __( 'Parent Status:', 'nanosupport' ),
+        'edit_item'         => __( 'Edit Status', 'nanosupport' ),
+        'update_item'       => __( 'Update Status', 'nanosupport' ),
+        'add_new_item'      => __( 'Add New Status', 'nanosupport' ),
+        'new_item_name'     => __( 'New Status Name', 'nanosupport' ),
+        'menu_name'         => __( 'Status', 'nanosupport' ),
     );
 
     $args = array(
-        'hierarchical'      => true,
+        'hierarchical'      => false,
         'public'            => false,
         'show_tagcloud'     => false,
+        'taxonomies'        => array( 'nanosupport_status' ),
         'labels'            => $labels,
-        'show_ui'           => false,
-        'show_admin_column' => false,
+        'show_ui'           => true,
+        'show_admin_column' => true,
         'query_var'         => true,
-        'rewrite'           => array( 'slug' => 'support-departments' ),
-        'capabilities'      => array(
-                                'manage_terms' => 'manage_nanosupport_terms',
-                                'edit_terms'   => 'edit_nanosupport_terms',
-                                'delete_terms' => 'delete_nanosupport_terms',
-                                'assign_terms' => 'assign_nanosupport_terms',
-                            ),
+        'show_in_quick_edit'=> false,
+        'meta_box_cb'       => false,
+        'update_count_callback' => '_update_generic_term_count',
     );
 
-    if( ! taxonomy_exists( 'nanosupport_department' ) )
-        register_taxonomy( 'nanosupport_department', array( 'nanosupport' ), $args );
+    if( ! taxonomy_exists( 'nanosupport_status' ) )
+        register_taxonomy( 'nanosupport_status', array( 'nanosupport' ), $args );
+
+    $labels = array(
+        'name'              => __( 'Form factor', 'nanosupport' ),
+        'singular_name'     => __( 'Form factor', 'nanosupport' ),
+        'search_items'      => __( 'Search Form factor', 'nanosupport' ),
+        'all_items'         => __( 'All Form factor', 'nanosupport' ),
+        'parent_item'       => __( 'Parent Form factor', 'nanosupport' ),
+        'parent_item_colon' => __( 'Parent Form factor:', 'nanosupport' ),
+        'edit_item'         => __( 'Edit Form factor', 'nanosupport' ),
+        'update_item'       => __( 'Update Form factor', 'nanosupport' ),
+        'add_new_item'      => __( 'Add New Form factor', 'nanosupport' ),
+        'new_item_name'     => __( 'New Form factor Name', 'nanosupport' ),
+        'menu_name'         => __( 'Form factor', 'nanosupport' ),
+    );
+
+    $args = array(
+        'hierarchical'      => false,
+        'public'            => false,
+        'show_tagcloud'     => false,
+        'taxonomies'        => array( 'nanosupport_form_factor' ),
+        'labels'            => $labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'show_in_quick_edit'=> false,
+        'meta_box_cb'       => false,
+        'update_count_callback' => '_update_generic_term_count',
+    );
+
+    if( ! taxonomy_exists( 'nanosupport_form_factor' ) )
+        register_taxonomy( 'nanosupport_form_factor', array( 'nanosupport' ), $args );
 
 }
 
 add_action( 'init', 'ns_create_nanosupport_taxonomies', 0 );
 
+function ns_create_nanosupport_taxonomies_default() {
+
+    $status_terms = get_terms( array(
+        'taxonomy' => 'nanosupport_status',
+        'hide_empty' => false,
+    ) );
+
+    if ( $status_terms ) {
+        $open = 0;
+        $pending = 0;
+        $solved = 0;
+        foreach ( $status_terms as $status_term ) {
+            if ( $status_term->slug = 'open' ) {
+                $open = 1;
+            }
+            if ( $status_term->slug = 'pending' ) {
+                $pending = 1;
+            }
+            if ( $status_term->slug = 'solved' ) {
+                $solved = 1;
+            }
+        }
+        if ( $open = 0 ) {
+            wp_insert_term(
+                'Open', // the term 
+                'nanosupport_status', // the taxonomy
+                array(
+                  'description'=> 'Open',
+                  'slug' => 'open',
+                )
+            );
+        }
+        if ( $pending == 0 ) {
+            wp_insert_term(
+                'Pending', // the term 
+                'nanosupport_status', // the taxonomy
+                array(
+                  'description'=> 'Pending',
+                  'slug' => 'pending',
+                )
+            );
+        }
+        if ( $solved == 0 ) {
+            wp_insert_term(
+                'Solved', // the term 
+                'nanosupport_status', // the taxonomy
+                array(
+                  'description'=> 'Solved',
+                  'slug' => 'solved',
+                )
+            );
+        }
+    } else {
+        wp_insert_term(
+            'Open', // the term 
+            'nanosupport_status', // the taxonomy
+            array(
+              'description'=> 'Open',
+              'slug' => 'open',
+            )
+        );
+        wp_insert_term(
+            'Pending', // the term 
+            'nanosupport_status', // the taxonomy
+            array(
+              'description'=> 'Pending',
+              'slug' => 'pending',
+            )
+        );
+        wp_insert_term(
+            'Solved', // the term 
+            'nanosupport_status', // the taxonomy
+            array(
+              'description'=> 'Solved',
+              'slug' => 'solved',
+            )
+        );
+    }
+
+}
+
+add_action( 'init', 'ns_create_nanosupport_taxonomies_default' );
 
 /**
  * Copy Ticket button.
@@ -491,6 +779,54 @@ function ns_help_text_to_post_author( $output )  {
 }
 
 add_filter( 'wp_dropdown_users', 'ns_help_text_to_post_author' );
+
+/**
+ * Keep the Submission Date while Publishing Ticket.
+ *
+ * The date of the primary submission as 'pending', was changed
+ * while publishing the ticket as 'private' with the date of
+ * publish. With this hook, the issue is resolved.
+ *
+ * @author Paul 'Sparrow Hawk' Biron
+ * @link   https://wordpress.stackexchange.com/a/262306/22728
+ *
+ * @param  array $data     Post Data array.
+ * @param  array $postarr  Post Array.
+ * @return array           Modified Post Data array.
+ * -----------------------------------------------------------------------
+ */
+function ns_keep_pending_date_on_publishing($data, $postarr)
+{
+	if( 'nanosupport' !== $data['post_type'] ) {
+		return $data;
+	}
+	// these checks are the same thing as transition_post_status(private, pending)
+	if( 'private' !== $data['post_status'] || 'pending' !== $postarr['original_post_status'] ) {
+		return $data;
+	}
+	$pending_datetime = get_post_field('post_date', $data['ID'], 'raw');
+	$data['post_date']     = $pending_datetime ;
+	$data['post_date_gmt'] = get_gmt_from_date($pending_datetime);
+	return $data;
+}
+add_filter( 'wp_insert_post_data', 'ns_keep_pending_date_on_publishing', 10, 2 );
+
+/**
+ * Remove Ticket Publishing Date filter.
+ * Making sure the post date filter trigger only once.
+ *
+ * @author kaiser
+ * @link   https://wordpress.stackexchange.com/a/262328/22728
+ *
+ * @see    ns_keep_pending_date_on_publishing()
+ *
+ * @return void.
+ */
+function ns_remove_onetime_filter()
+{
+    remove_filter( 'wp_insert_post_data', 'ns_keep_pending_date_on_publishing' );
+}
+add_action( 'transition_post_status', 'ns_remove_onetime_filter' );
 
 add_filter( 'posts_join', 'segnalazioni_search_join' );
 function segnalazioni_search_join ( $join ) {

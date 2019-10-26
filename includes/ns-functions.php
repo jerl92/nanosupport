@@ -283,6 +283,10 @@ function ns_handle_registration_login_ticket_submission() {
     //User identity is not acceptable
     if( empty( $user_id ) )
         $ns_errors[]   = esc_html__( 'Sorry, your user identity is not acceptable! Your ticket is not submitted.', 'nanosupport' );
+        
+        if ( $_POST['ns_ticket_form_factor'] == 0 ) {
+$ns_errors[]   = esc_html__( 'Sorry, you need to chose a from factor.', 'nanosupport' );
+        }
 
 
     //------------------ERROR: There are errors - don't go further
@@ -308,7 +312,7 @@ function ns_handle_registration_login_ticket_submission() {
         $ticket_details = wp_kses( $ticket_details, ns_allowed_html() );
         
         $ticket_post_id = wp_insert_post( array(
-                            'post_status'       => wp_strip_all_tags( $post_status ),
+                            'post_status'       => 'pending',
                             'post_type'         => 'nanosupport',
                             'post_author'       => absint( $user_id ),
 
@@ -327,8 +331,35 @@ function ns_handle_registration_login_ticket_submission() {
             wp_set_object_terms( $ticket_post_id, (int) $ticket_department, 'nanosupport_department' );
         }
 
+        $status_terms = get_terms( array(
+            'taxonomy' => 'nanosupport_status',
+            'hide_empty' => false,
+        ) );
+
+        if ( $status_terms ) {
+            foreach ( $status_terms as $status_term ) {
+                if ( $status_term->slug == 'pending' ) {
+                    wp_set_object_terms( $ticket_post_id, (int) $status_term->term_id, 'nanosupport_status');
+                    add_post_meta( $ticket_post_id, '_ns_ticket_status', $status_term->slug );
+                }
+            }
+        }
+
+        $form_factor_terms = get_terms( array(
+            'taxonomy' => 'nanosupport_form_factor',
+            'hide_empty' => false,
+        ) );
+
+        if ( $form_factor_terms ) {
+            foreach ( $form_factor_terms as $form_factor_term ) {
+                if ( $form_factor_term->term_id == $_POST['ns_ticket_form_factor'] ) {
+                    wp_set_object_terms( $ticket_post_id, (int) $_POST['ns_ticket_form_factor'], 'nanosupport_form_factor');
+                    add_post_meta( $ticket_post_id, '_ns_ticket_form_factor', sanitize_text_field($form_factor_term->slug) );
+                }
+            }
+        }
+
         // Insert the meta information into postmeta.
-        add_post_meta( $ticket_post_id, '_ns_ticket_status', 'pending' );
         add_post_meta( $ticket_post_id, '_ns_ticket_priority', wp_strip_all_tags( $ticket_priority ) );
         add_post_meta( $ticket_post_id, '_ns_ticket_agent',    '' ); //empty: no ticket agent's assigned
 
@@ -343,7 +374,11 @@ function ns_handle_registration_login_ticket_submission() {
         add_post_meta( $ticket_post_id, '_ns_ticket_serial_number', $_POST['ns_ticket_serial_number'] );
         add_post_meta( $ticket_post_id, '_ns_ticket_inovice_number', $_POST['ns_ticket_inovice_number'] );
         add_post_meta( $ticket_post_id, '_ns_ticket_internal_reference_number', $_POST['ns_ticket_internal_reference_number'] );
+        add_post_meta( $ticket_post_id, '_ns_ticket_internal_reference_establishment', $_POST['ns_ticket_internal_reference_establishment'] );
+        add_post_meta( $ticket_post_id, '_ns_ticket_internal_reference_name', $_POST['ns_ticket_internal_reference_name'] );
         add_post_meta( $ticket_post_id, 'ns_internal_rma_number', esc_attr( $ticket_post_id ) );
+
+        add_post_meta( $ticket_post_id, '_ns_ip_user', esc_attr( $_SERVER['REMOTE_ADDR'] ) );
 
         //if ns_ticket_return_adresse is not used take default adresse from profil.
         $userdata = get_userdata($user_id);
@@ -354,12 +389,18 @@ function ns_handle_registration_login_ticket_submission() {
 
         $userdata_adresse_array = array( $userdata_adresse,  $userdata_ville,  $userdata_province,  $userdata_code_postal );
 
-        if(!empty($_POST['ns_ticket_return_adresse'])) {
-            add_post_meta( $ticket_post_id, '_ns_ticket_return_adresse', $_POST['ns_ticket_return_adresse'] );
-        } else {
-            add_post_meta( $ticket_post_id, '_ns_ticket_return_adresse', implode(" ", $userdata_adresse_array ) );
-        }
+        $check_alternative_adresse = get_user_meta( $userdata->ID, 'meta_alternative_adresse', true );
 
+        if($check_alternative_adresse) {
+            if(isset($_POST['this_alternative_adresse'])) {
+                $get_alternative_adresse = $check_alternative_adresse[$_POST['this_alternative_adresse']];
+                add_post_meta( $ticket_post_id, '_ns_ticket_return_adresse', implode("\n", $get_alternative_adresse) );
+            } else {
+                add_post_meta( $ticket_post_id, '_ns_ticket_return_adresse', implode("\n", $userdata_adresse_array ) );
+            }
+        } else {
+            add_post_meta( $ticket_post_id, '_ns_ticket_return_adresse', implode("\n", $userdata_adresse_array ) );
+        }
     }
 
     //Redirect to the same page with success message
@@ -393,7 +434,7 @@ function ns_preview_email_template() {
 
         ob_start();
             //get the designated email template
-            ns_get_template_part( 'content', 'email' );
+            ns_get_template_part( 'content-email.php' );
         $email_content = ob_get_clean();
 
         ob_start();
@@ -676,8 +717,9 @@ if( ! function_exists( 'get_nanosupport_response_form' ) ) :
                             <?php esc_html_e( 'Submit', 'nanosupport' ); ?>
                         </button>
 
-                        <?php if( in_array( $ticket_meta['status']['value'], array('solved', 'shipping_back', 'inspection', 'pending', 'open', 'return_to_sunterra', 'return_part_to_sunterra', 'send_part_wo_return', 'part_in_order', 'hold', 'return_laptop_evaluation', 'return_laptop_credit', ) ) ) { ?>
-                            <button type="submit" name="close_ticket" class="ns-btn ns-btn-default">
+                        <?php $user = wp_get_current_user(); ?>
+                        <?php if( $ticket_meta['status']['value'] != 'solved' && (in_array( 'administrator', (array) $user->roles ) || in_array( 'ticket-agent', (array) $user->roles ) ) ) { ?>
+                            <button type="submit" name="close_ticket" style="float: right;" class="ns-btn ns-btn-default">
                                 <?php esc_html_e( 'Close Ticket', 'nanosupport' ); ?>
                             </button>
                         <?php } //endif open/inspection ?>
@@ -792,9 +834,16 @@ function ns_handle_response_submit() {
 
             $comment_id = wp_new_comment( $commentdata );
 
+            $post_modified = array(
+                'ID' => absint( $post->ID ),
+                'post_modified_gmt' => date( 'Y:m:d H:i:s' ),
+            );
+
             //If error, return with the error message
             if( is_wp_error($comment_id) )
                 return $comment_id->get_error_message();
+            else
+                wp_update_post( $post_modified );
 
         }
 
@@ -817,7 +866,7 @@ function ns_handle_response_submit() {
          * if closed chosen.
          * ...
          */
-        if( in_array($ticket_status, array('solved', 'shipping_back', 'inspection', 'pending', 'open', 'return_to_sunterra', 'return_part_to_sunterra', 'send_part_wo_return', 'part_in_order', 'hold', 'return_laptop_evaluation', 'return_laptop_credit', )) && isset($_POST['close_ticket']) ) {
+        if( isset($_POST['close_ticket']) ) {
             update_post_meta( $post->ID, '_ns_ticket_status', 'solved' );
             nanosupport_new_ticket_notification_email( 'solved', '', $post );
             ns_update_post_modified_date( $post->ID );

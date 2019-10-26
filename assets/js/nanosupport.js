@@ -76,3 +76,7 @@ jQuery(document).ready(function($) {
     }
 
 });
+
+document.getElementById("ns_submit").addEventListener("click", function(event){
+  event.preventDefault();
+});

@@ -130,7 +130,14 @@ function nanosupport_widget_callback() { ?>
                             <p><?php _e( 'Yet nothing to display!', 'nanosupport' ) ?></p>
                         </div>
                     <?php else : ?>
-                        <div id="ns-chart"></div>
+                        <!-- <div id="ns-chart"></div> -->
+                        <?php foreach ( ns_ticket_get_all_status() as $ticket_status ) {
+                            echo '<div class="ns-label-dashboard" style="background-color:'. $ticket_status['color'] .';">';
+                                echo '<div style="padding: 5px; margin-bottom: 5px; font-size: 15px; font-weight: 500; width: 25%; float: right;">'. ns_ticket_status_count($ticket_status['slug']) .'</div>';
+                                echo '<div style="padding: 5px; margin-bottom: 5px; font-size: 15px; font-weight: 600; width: 75%; text-align: left;">'. $ticket_status['name'] .'</div>';
+                            echo '</div>';
+                        } ?>
+                        <hr>
                         <div class="ns-total-ticket-count ns-text-center">
                             <?php
                             /* translators: Count in numbers */

@@ -1,5 +1,29 @@
 <img src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" alt="From" data-canonical-src="https://cloud.githubusercontent.com/assets/4551598/18225488/c7c6a738-7214-11e6-80bd-afed15d6cd00.png" style="max-width:100%;"></br>
 
+<img src="https://img15.hostingpics.net/pics/253971samesnsunterra.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/253971samesnsunterra.png" style="max-width:100%;"></br>
+
+```js
+  $sn_args = array(
+      'fields' => 'ids',
+      'post_type'   => 'nanosupport',
+      'meta_query'  => array(
+          array(
+          'key' => '_ns_ticket_serial_number',
+          'value' => $meta_data_serial_number,
+          'compare' => '='
+          )
+      )
+  );
+  $my_query = new WP_Query( $sn_args );
+  $same_sn_count = $my_query->found_posts;
+```
+
+<img src="https://img15.hostingpics.net/pics/695743computerform.jpg" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/695743computerform.jpg" style="max-width:100%;"></br>
+
+<img src="https://img15.hostingpics.net/pics/252640sunterraadmin.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/252640sunterraadmin.png" style="max-width:100%;"></br>
+
+<img src="https://img15.hostingpics.net/pics/137536sunterraadmin2.png" alt="From" data-canonical-src="https://img15.hostingpics.net/pics/137536sunterraadmin2.png" style="max-width:100%;"></br>
+
 # NanoSupport <kbd>[**DOWNLOAD**](https://wordpress.org/plugins/nanosupport/)</kbd>
 Smart Support Ticketing Plugin for WordPress
 

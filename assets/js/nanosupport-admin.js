@@ -269,3 +269,28 @@ var copyToClipboard = (function() {
         document.execCommand("copy");
     };
 })();
+
+$( document ).ready(function() {
+    adaptColor('.ns-label');
+});
+
+function adaptColor(selector) {
+    var rgb = $(selector).css("background-color");
+
+    if (rgb.match(/^rgb/)) {
+    var a = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/),
+        r = a[1],
+        g = a[2],
+        b = a[3];
+    }
+    var hsp = Math.sqrt(
+    0.299 * (r * r) +
+    0.587 * (g * g) +
+    0.114 * (b * b)
+    );
+    if (hsp > 127.5) {
+    $(selector).css('color', 'black');
+    } else {
+    $(selector).css('color', 'white');
+    }
+};

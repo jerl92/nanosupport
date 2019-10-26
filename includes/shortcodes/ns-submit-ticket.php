@@ -30,24 +30,28 @@ function ns_submit_support_ticket() {
             	printf( __( '<strong>Error:</strong> %s', 'nanosupport' ), $error );
         	echo '</div>';
         }
-    }
+	}
+	
+	$form_factor_terms = get_terms( array(
+		'taxonomy' => 'nanosupport_form_factor',
+		'hide_empty' => false,
+	) );
 
     /**
 	 * Show a Redirection Message
 	 * while redirected.
 	 */
 	if( isset($_GET['from']) && 'sd' === $_GET['from'] ) {
-		echo '<div class="ns-alert ns-alert-info" role="alert">';
-			esc_html_e( 'You are redirected from the Support Desk, because you are not logged in, and have no permission to view any ticket.', 'nanosupport' );
-		echo '</div>';
+		wp_redirect( wp_login_url() );
+		exit;
 	}
 
     //Display success message, if any
     if( isset($_GET['ns_success']) && $_GET['ns_success'] == 1 ) {
 		echo '<div class="ns-alert ns-alert-success" role="alert">';
-			echo wp_kses( __( '<strong>Success!</strong> Your ticket is submitted successfully! It will be reviewed shortly and replied as early as possible.', 'nanosupport' ), array('strong' => array()) );
-			echo '&nbsp;<a href="'. get_permalink( $ns_general_settings['support_desk'] ) .'" class="link-to-desk"><i class="ns-icon-tag"></i>&nbsp;';
-				esc_html_e( 'Check your tickets', 'nanosupport' );
+			echo wp_kses( __( '<strong>Success!</strong> Your RMA has been submitted successfully. Our team is reviewing it now and will be responding to you shortly.', 'nanosupport' ), array('strong' => array()) );
+			echo '&nbsp;<a href="'. get_permalink( $ns_general_settings['support_desk'] ) .'" class="link-to-desk"><i class="ns-icon-tag" aria-hidden="true"></i>&nbsp;';
+				esc_html_e( 'Consult your RMA', 'nanosupport' );
 			echo '</a>';
 	    echo '</div>';
 	}
@@ -56,6 +60,12 @@ function ns_submit_support_ticket() {
 	$_SERVER['REQUEST_URI'] = remove_query_arg( 'ns_success', $_SERVER['REQUEST_URI'] );
 
 	ob_start();
+
+	if( !is_user_logged_in() ) {
+		wp_redirect( wp_login_url() );
+		exit;
+	}
+
 	?>
 
 	<div id="nanosupport-add-ticket" class="nano-support-ticket nano-add-ticket ns-no-js">
@@ -97,213 +107,148 @@ function ns_submit_support_ticket() {
 
 					<!-- SUBJECT -->
 					<div class="ns-form-group">
-						<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
-							
-							<div class="ns-col-md-3 ns-col-sm-3 ns-col-xs-12 ">
-								<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									<label for="ns-ticket-inovice-number">
-										<?php esc_html_e( 'S.O# or P.O# Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<?php echo ns_tooltip( 'ns-inovice-number', esc_html__( 'Sale order "S.O#" or Porduct order "P.O#" number', 'nanosupport' ), 'bottom' ); ?>
-								</div>
-								<input type="text" class="ns-form-control" name="ns_ticket_inovice_number" id="ns-ticket-inovice-number" value="<?php echo !empty($_POST['ns_ticket_inovice_number']) ? stripslashes_deep( $_POST['ns_ticket_inovice_number'] ) : ''; ?>" aria-describedby="ns-inovice-number" required>
-							</div>
-					
-							<div class="ns-col-md-3 ns-col-sm-3 ns-col-xs-12">
-								<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									<label for="ns-ticket-internal-reference-number">
-										<?php esc_html_e( 'Your Internal Reference Number', 'nanosupport' ); ?>
-									</label>
-									<?php echo ns_tooltip( 'ns-internal-reference-number', esc_html__( 'Your internal reference number from your establishment', 'nanosupport' ), 'bottom' ); ?>
-								</div>
-								<input type="text" class="ns-form-control" name="ns_ticket_internal_reference_number" id="ns-internal-reference-number" value="<?php echo !empty($_POST['ns_ticket_internal_reference_number']) ? stripslashes_deep( $_POST['ns_ticket_internal_reference_number'] ) : ''; ?>" aria-describedby="ns-internal-reference-number">
-							</div>
-
-							<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
-								<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									<label for="ns-ticket-subject">
-										<?php esc_html_e( 'Device Brand, Model and from factor', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<?php echo ns_tooltip( 'ns-computer-model', esc_html__( 'Computer brand, model and from factor EX: Dell Optiplex 990 Tower', 'nanosupport' ), 'bottom' ); ?>
-								</div>
-								<input type="text" class="ns-form-control" name="ns_ticket_subject" id="ns-ticket-subject" value="<?php echo !empty($_POST['ns_ticket_subject']) ? stripslashes_deep( $_POST['ns_ticket_subject'] ) : ''; ?>" aria-describedby="ns-subject" required>
-							</div>
-
-						</div>	
+						<label for="ns-ticket-inovice-number" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'S.O# or P.O# Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-inovice-number', esc_html__( 'Sale order "S.O#" or Porduct order "P.O#" number', 'nanosupport' ), 'bottom' ); ?> 
+						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+                        <input type="text" class="ns-form-control" name="ns_ticket_inovice_number" id="ns-ticket-inovice-number" value="<?php echo !empty($_POST['ns_ticket_inovice_number']) ? stripslashes_deep( $_POST['ns_ticket_inovice_number'] ) : ''; ?>" aria-describedby="ns-inovice-number" required>
+						</div>
 					</div> <!-- /.ns-form-group -->
 
-					<!-- No SÉRIE -->
+                    <div class="ns-form-group">
+						<label for="ns-ticket-subject" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'Device Brand and Model', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-computer-model', esc_html__( 'Computer brand and model EX: Dell Optiplex 990', 'nanosupport' ), 'bottom' ); ?>
+						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+                        <input type="text" class="ns-form-control" name="ns_ticket_subject" id="ns-ticket-subject" value="<?php echo !empty($_POST['ns_ticket_subject']) ? stripslashes_deep( $_POST['ns_ticket_subject'] ) : ''; ?>" aria-describedby="ns-subject" required>
+						</div>
+					</div> <!-- /.ns-form-group -->
+
 					<div class="ns-form-group">
-						<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
-							
-							<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
-								<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									<label for="ns-ticket-serial-number">
-										<?php esc_html_e( 'Serial Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<?php echo ns_tooltip( 'ns-computer-serial-number', esc_html__( 'Device serial number' , 'nanosupport' ), 'bottom' ); ?>
-								</div>
-								<input type="text" class="ns-form-control" name="ns_ticket_serial_number" id="ns-ticket-serial-number" value="<?php echo !empty($_POST['ns_ticket_serial_number']) ? stripslashes_deep( $_POST['ns_ticket_serial_number'] ) : ''; ?>" aria-describedby="ns-serial-number" required>
-							</div>	
-
-							<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
-								<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									<label for="ns-ticket-issuse">
-										<?php esc_html_e( 'Issuse/Defective Part', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-									</label>
-									<?php echo ns_tooltip( 'ns-ticket-issuse', esc_html__( 'Device Issuse/Defective part short description' , 'nanosupport' ), 'bottom' ); ?>
-								</div>
-								<input type="text" class="ns-form-control" name="ns_ticket_issuse" id="ns-ticket-issuse" value="<?php echo !empty($_POST['ns_ticket_issuse']) ? stripslashes_deep( $_POST['ns_ticket_issuse'] ) : ''; ?>" aria-describedby="ns-ticket-issuse" required>
+						<label for="ns-ticket-form-factor" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+								<?php esc_html_e( 'Component type', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+							</label>
+							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+								<?php echo ns_tooltip( 'ns-form-factor', esc_html__( 'Chosse component type', 'nanosupport' ), 'bottom' ); ?>
 							</div>
+							<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+							<select name="ns_ticket_form_factor" class="ns-field-item" id="ns-ticket-form-factor" aria-describedby="ns-ticket-form-factor-tooltip" required>
+								<?php if ( $form_factor_terms ) {
+									echo '<option value="0">'. esc_html__( 'Select a component type' , 'nanosupport' ) .'</option>';
+									foreach ( $form_factor_terms as $form_factor_term ) {
+										$lang_text_term = qtranxf_use(qtranxf_getLanguage(), $form_factor_term->name);
+										echo '<option value="'. $form_factor_term->term_id .'">'. $lang_text_term .'</option>';
+									}
+								} ?>
+							</select>
+						</div>
+					</div> <!-- /.ns-form-group -->
 
-						</div> <!-- /.ns-col-md-12 -->
+                    <div class="ns-form-group">
+						<label for="ns-ticket-serial-number" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'Device serial Number', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-computer-serial-number', esc_html__( 'Device serial Number' , 'nanosupport' ), 'bottom' ); ?>
+						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+                        <input type="text" class="ns-form-control" name="ns_ticket_serial_number" id="ns-ticket-serial-number" value="<?php echo !empty($_POST['ns_ticket_serial_number']) ? stripslashes_deep( $_POST['ns_ticket_serial_number'] ) : ''; ?>" aria-describedby="ns-serial-number" required>
+						</div>
+					</div> <!-- /.ns-form-group -->
+
+                    <div class="ns-form-group">
+						<label for="ns-ticket-issuse" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'Issues', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-ticket-issuse', esc_html__( 'Device Issuse/Defective part short description' , 'nanosupport' ), 'bottom' ); ?>
+						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+                        <input type="text" class="ns-form-control" name="ns_ticket_issuse" id="ns-ticket-issuse" value="<?php echo !empty($_POST['ns_ticket_issuse']) ? stripslashes_deep( $_POST['ns_ticket_issuse'] ) : ''; ?>" aria-describedby="ns-ticket-issuse" required>
+						</div>
 					</div> <!-- /.ns-form-group -->
 
 					<!-- TICKET DETAILS -->
-					<?php
-						/**
-						* WP Editor array.
-						* Declare the array here, so that we can conditionally
-						* display tooltip content.
-						* @var array
-						* ...
-						*/
-						$wp_editor_array = array(
-											'media_buttons'		=> true,
-											'drag_drop_upload'	=> true,
-											'textarea_name'		=> 'ns_ticket_details',
-											'textarea_rows'		=> 5,
-											'editor_class'		=> 'ns-form-control',
-											'quicktags'			=> false,
-											'tinymce'			=> true
-										);
-
-						/**
-						* -----------------------------------------------------------------------
-						* HOOK : FILTER HOOK
-						* ns_wp_editor_specs
-						* 
-						* Hook to moderate the specs of the wp_editor().
-						*
-						* @since  1.0.0
-						* -----------------------------------------------------------------------
-						*/
-						$wp_editor_specs = apply_filters( 'ns_wp_editor_specs', $wp_editor_array );
-						?>
-
-						<!-- TICKET DETAILS -->
-						<div class="ns-form-group">
-							<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
-								
-								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
-									<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label">
-									
-										<label for="ns-ticket-details">
-											<?php esc_html_e( 'Details', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
-										</label>
-
-										<?php
-										$character_limit = ns_is_character_limit();
-										if( $character_limit ) {
-											/* translators: character limit to the ticket content, in number */
-											$content_tooltip_msg = sprintf( esc_html__( 'Write down your issue in details... At least %s characters is a must.', 'nanosupport' ), $character_limit );
-											// allowed HTML tags are not necessary if rich text editor is disabled.
-											if( $wp_editor_specs['tinymce'] != true ) {
-												$content_tooltip_msg .= '<br><small>';
-													/* translators: allowed HTML tags to the plugin */
-													$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
-												$content_tooltip_msg .= '</small>';
-											}
-
-											echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
-										} else {
-											$content_tooltip_msg = esc_html__( 'Write down your issue in details...', 'nanosupport' );
-											// allowed HTML tags are not necessary if rich text editor is disabled.
-											if( $wp_editor_specs['tinymce'] != true ) {
-												$content_tooltip_msg .= '<br><small>';
-													/* translators: allowed HTML tags to the plugin */
-													$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
-												$content_tooltip_msg .= '</small>';
-											}
-
-											echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
-										}
-										?>
-
-										<?php
-										$ticket_content = !empty($_POST['ns_ticket_details']) ? $_POST['ns_ticket_details'] : '';
-
-										// initiate the editor.
-										wp_editor(
-												$content   = $ticket_content,
-												$editor_id = 'ns-ticket-details',
-												$wp_editor_specs
+					<div class="ns-form-group">
+						<label for="ns-ticket-details" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'Diagnosis and details', 'nanosupport' ); ?> <sup class="ns-required">*</sup>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+							<?php
+							/**
+							 * WP Editor array.
+							 * Declare the array here, so that we can conditionally
+							 * display tooltip content.
+							 * @var array
+							 * ...
+							 */
+							$wp_editor_array = array(
+												'media_buttons'		=> false,
+												'textarea_name'		=> 'ns_ticket_details',
+												'textarea_rows'		=> 10,
+												'editor_class'		=> 'ns-form-control',
+												'quicktags'			=> false,
+												'tinymce'			=> true
 											);
-										?>
-									
-									</div>
 
-								</div>
+							/**
+						     * -----------------------------------------------------------------------
+						     * HOOK : FILTER HOOK
+						     * ns_wp_editor_specs
+						     * 
+						     * Hook to moderate the specs of the wp_editor().
+						     *
+						     * @since  1.0.0
+						     * -----------------------------------------------------------------------
+						     */
+							$wp_editor_specs = apply_filters( 'ns_wp_editor_specs', $wp_editor_array );
 
-								<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
-								
-									<div id="retrun-adresse-map-toggle" class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-control-label ns-control-label-mobile">
-										
-										<label id="ns-ticket-retrun-adresse">
-											<?php esc_html_e( 'Alternative return Adresse', 'nanosupport' ); ?>
-										</label>
+							$character_limit = ns_is_character_limit();
+							if( $character_limit ) {
+								/* translators: character limit to the ticket content, in number */
+								$content_tooltip_msg = sprintf( esc_html__( 'Write down your issue in diagnosis and details... At least %s characters is a must.', 'nanosupport' ), $character_limit );
+								// allowed HTML tags are not necessary if rich text editor is disabled.
+								if( $wp_editor_specs['tinymce'] != true ) {
+									$content_tooltip_msg .= '<br><small>';
+										/* translators: allowed HTML tags to the plugin */
+										$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
+									$content_tooltip_msg .= '</small>';
+								}
 
+								echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
+							} else {
+								$content_tooltip_msg = esc_html_e( 'Write down your issue in details...', 'nanosupport' );
+								// allowed HTML tags are not necessary if rich text editor is disabled.
+								if( $wp_editor_specs['tinymce'] != true ) {
+									$content_tooltip_msg .= '<br><small>';
+										/* translators: allowed HTML tags to the plugin */
+										$content_tooltip_msg .= sprintf( __( '<strong>Allowed HTML Tags:</strong><br> %s', 'nanosupport' ), ns_get_allowed_html_tags() );
+									$content_tooltip_msg .= '</small>';
+								}
 
-										<?php echo ns_tooltip( 'ns-return-adresse', esc_html__( 'Use a alternative return adresse, if blank profil adresse will be used' , 'nanosupport' ), 'bottom' ); ?>
-
-										<div id="retrun-adresse-map-click" class="down">
-											<i class="arrow"></i>
-										</div>
-
-									</div>
-
-									<div id="ticket-retrun-adresse-div">
-
-										<?php
-										$wp_editor_array = array(
-															'media_buttons'		=> false,
-															'textarea_name'		=> 'ns_ticket_return_adresse',
-															'textarea_rows'		=> 4,
-															'editor_class'		=> 'ns-form-control',
-															'quicktags'			=> false,
-															'tinymce'			=> false
-														);
-
-										$wp_editor_specs_adresse = apply_filters( 'ns_wp_editor_specs_adresse', $wp_editor_array );
-										
-								
-										function prefix_add_footer_styles() {
-											wp_enqueue_script('google-maps', 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD6e1aNk3fjsJEtmcYXXVRbZmZJlsJyLDM&libraries=places&callback=initMap', array('jquery'));     
-										}
-										add_action( 'get_footer', 'prefix_add_footer_styles' ); ?>
-									
-										<div id="ticket-retrun-adresse-text-area">
-
-											<input id="searchInput" class="controls" type="text" placeholder="<?php esc_html_e('Enter place/school name or adresse', 'nanosupport') ?>"></input>
-											<div id="map"></div>
-										
-											<?php 
-											$ticket_return_adresse = !empty($_POST['ns_ticket_return_adresse']) ? $_POST['ns_ticket_return_adresse'] : '';
-											// initiate the editor.
-											wp_editor(
-													$content   = $ticket_return_adresse,
-													$editor_id = 'ns-ticket-return-adresse',
-													$wp_editor_specs_adresse
-												);
-											?>
-										</div>
-										
-									</div>
-
-								</div>
-
-							</div>
+								echo ns_tooltip( 'ns-details', $content_tooltip_msg, 'bottom' );
+							}
+							?>
 						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+							<?php
+							$ticket_content = !empty($_POST['ns_ticket_details']) ? $_POST['ns_ticket_details'] : '';
+
+							// initiate the editor.
+							wp_editor(
+									$content   = $ticket_content,
+									$editor_id = 'ns-ticket-details',
+									$wp_editor_specs
+								);
+							?>
+						</div>
+					</div> <!-- /.ns-form-group -->
 
 					<?php
 					$NSECommerce = new NSECommerce();
@@ -349,7 +294,7 @@ function ns_submit_support_ticket() {
 						<!-- TICKET PRODUCT RECEIPT -->
 						<div class="ns-form-group">
 							<label for="ns-ticket-product-receipt" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
-								<?php esc_html_e( 'Purhcase Receipt', 'nanosupport' ); ?>
+								<?php esc_html_e( 'Purchase Receipt', 'nanosupport' ); ?>
 								<?php if( $mandate_product_fields ) echo '<sup class="ns-required">*</sup>'; ?>
 							</label>
 							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
@@ -363,17 +308,112 @@ function ns_submit_support_ticket() {
 
 					<?php } // endif( $NSECommerce->ecommerce_enabled ) ?>
 
-					<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
-						<div class="ns-form-group ns-form-group-submit">
-							<div class="ns-col-sm-6 ns-col-sm-6 ns-col-xs-6">
+					<hr>
+
+					<div class="ns-form-group">
+
+						<h6 class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12 ns-text-center">
+							<?php esc_html_e( 'Your internal references', 'nanosupport' ); ?>
+						</h6>
+					
+						<label for="ns-ticket-internal-reference-number" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+							<?php esc_html_e( 'Request or reference number', 'nanosupport' ); ?>
+						</label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-internal-reference-number', esc_html__( 'Request or reference number from your establishment.', 'nanosupport' ), 'bottom' ); ?>
+						</div>
+						<div class="ns-col-md-9 ns-col-sm-9 ns-col-xs-12">
+                        <input type="text" class="ns-form-control" name="ns_ticket_internal_reference_number" id="ns-internal-reference-number" value="<?php echo !empty($_POST['ns_ticket_internal_reference_number']) ? stripslashes_deep( $_POST['ns_ticket_internal_reference_number'] ) : ''; ?>" aria-describedby="ns-internal-reference-number">
+						</div>
+					</div> <!-- /.ns-form-group -->
+
+					<div class="ns-form-group">
+
+						<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+							<label for="ns-ticket-internal-reference-establishment" class="ns-col-md-5 ns-col-sm-5 ns-col-xs-10 ns-control-label">
+								<?php esc_html_e( 'Facility Name', 'nanosupport' ); ?>
+							</label>
+							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+								<?php echo ns_tooltip( 'ns-internal-reference-establishment', esc_html__( 'The Facility Name, where the computer is assigned.', 'nanosupport' ), 'bottom' ); ?>
 							</div>
-							<div class="ns-col-sm-6 ns-col-sm-6 ns-col-xs-6">
-								<button type="submit" id="ns_submit" name="ns_submit" class="ns-btn ns-btn-primary ns-btn-ticket" onclick="return confirm(' <?php _e('Confirm before send!','nanosupport'); ?> ')">
+							<input type="text" class="ns-form-control" name="ns_ticket_internal_reference_establishment" id="ns-internal-reference-establishment" value="<?php echo !empty($_POST['ns_ticket_internal_reference_establishment']) ? stripslashes_deep( $_POST['ns_ticket_internal_reference_establishment'] ) : ''; ?>" aria-describedby="ns-internal-reference-establishment">
+						</div>
+						<div class="ns-col-md-6 ns-col-sm-6 ns-col-xs-12">
+							<label for="ns-ticket-internal-reference-name" class="ns-col-md-5 ns-col-sm-5 ns-col-xs-10 ns-control-label">
+								<?php esc_html_e( 'Responsible for the RMA', 'nanosupport' ); ?>
+							</label>
+							<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+								<?php echo ns_tooltip( 'ns-ticket-internal-reference-name', esc_html__( 'The technician name Responsible for the RMA file.', 'nanosupport' ), 'bottom' ); ?>
+							</div>
+							<input type="text" class="ns-form-control" name="ns_ticket_internal_reference_name" id="ns-ticket-internal-reference-name" value="<?php echo !empty($_POST['ns_ticket_internal_reference_name']) ? stripslashes_deep( $_POST['ns_ticket_internal_reference_name'] ) : ''; ?>" aria-describedby="ns-ticket-internal-reference-name">
+						</div>
+				
+					</div> <!-- /.ns-form-group -->
+
+					<hr>
+
+                    <div class="ns-form-group">
+                        <label for="ns-retrun-adresse" class="ns-col-md-2 ns-col-sm-2 ns-col-xs-10 ns-control-label">
+                            <?php esc_html_e( 'Alternative return Adresse', 'nanosupport' ); ?>
+                        </label>
+						<div class="ns-col-md-1 ns-col-sm-1 ns-col-xs-2 ns-text-center">
+                            <?php echo ns_tooltip( 'ns-return-adresse', esc_html__( 'Use a alternative return adresse, if blank profil adresse will be used' , 'nanosupport' ), 'bottom' ); ?>
+						</div>
+						<div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
+                            <?php $check_alternative_adresse = get_user_meta( get_current_user_id(), 'meta_alternative_adresse', true ); ?>
+							<div class="ticket-retrun-adresse-button">
+									<button type="button" id="clear_alternative_adresse" name="clear_alternative_adresse" class="disabled ns-btn ns-btn-primary ns-btn-alternative-adresse">
+										<?php esc_html_e( 'Use account Adresse', 'nanosupport' ); ?>
+									</button> 
+									<button type="button" class="add_alternative_adresse ns-btn ns-btn-primary ns-btn-alternative-adresse">
+										<?php esc_html_e( 'Edit Adresse', 'nanosupport' ); ?>
+									</button> 
+									<button type="button" class="select_alternative_adresse hide ns-btn ns-btn-primary ns-btn-alternative-adresse">
+										<?php esc_html_e( 'Select Adresse', 'nanosupport' ); ?>
+									</button> 
+								</div>
+
+							<div id="ticket-retrun-adresse-div"> <?php
+							
+							echo '<table class="ns-ticket-retrun-adresse-table" style="width:100%; border-bottom: 0;">';
+							echo '<tbody><tr>
+								<th>'. esc_html__( 'Select', 'nanosupport' ) .'</th>
+								<th>'. esc_html__( 'Organization', 'nanosupport' ) .'</th>
+								<th>'. esc_html__( 'Adresse', 'nanosupport' ) .'</th>
+								<th>'. esc_html__( 'City', 'nanosupport' ) .'</th> 
+								<th>'. esc_html__( 'Province', 'nanosupport' ) .'</th>
+								<th>'. esc_html__( 'Postal code', 'nanosupport' ) .'</th>
+								<th>'. esc_html__( 'Country', 'nanosupport' ) .'</th>
+							</tr>';
+                            if($check_alternative_adresse) {
+                                $i = 0;
+                                foreach ( $check_alternative_adresse as $adresses ) {
+                                    echo '<tr>';
+                                        echo '<th>';
+                                            echo '<input type="radio" id="this_alternative_adresse" name="this_alternative_adresse" value="' . $i . '">';
+                                        echo '</th>';
+                                        foreach ( $adresses as $adresse ) {
+                                            echo '<th>';
+                                                echo $adresse;
+                                            echo '</th>';
+                                        }
+                                    echo '</tr>';
+                                    $i++;
+                                }
+							}
+							echo '</tbody></table>';
+
+							do_shortcode( '[nanosupport_alternative_adresse]' );
+                            
+						?></div>
+                    </div> <!-- /.ns-form-group -->
+
+                    <div class="ns-form-group">
+                        <div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
+							<div class="ns-form-submit">
+								<button type="submit" id="ns_submit" name="ns_submit" class="ns-btn ns-btn-primary ns-btn-ticket">
 									<?php esc_html_e( 'Submit', 'nanosupport' ); ?> *
 								</button>
-
-								</br>
-
 								<?php if( is_user_logged_in() ) : ?>
 									<span class="ns-text-dim ns-small">
 										<?php
@@ -384,13 +424,12 @@ function ns_submit_support_ticket() {
 									</span>
 								<?php endif; ?>
 							</div>
-						</div> <!-- /.ns-form-group -->
-					</div>
+                        </div>
+                    </div> <!-- /.ns-form-group -->
 
 				</form> <!-- /.ns-form-horizontal -->
 
 			</div>
-
 		</div> <!-- /.ns-row -->
 
 		<?php

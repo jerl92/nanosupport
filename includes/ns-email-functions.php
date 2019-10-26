@@ -57,7 +57,7 @@ function ns_email( $to_email, $subject, $email_subhead, $message, $reply_to_emai
         return;
 
     ob_start();
-        ns_get_template_part( 'content', 'email' );
+    ns_get_template_part( 'content-email.php' );
     $email_content  = ob_get_clean();
     $email_content  = str_replace( "%%NS_MAIL_SUBHEAD%%",  $email_subhead, $email_content );
     $email_content  = str_replace( "%%NS_MAIL_CONTENT%%",  $message,       $email_content );
@@ -73,8 +73,8 @@ function ns_email( $to_email, $subject, $email_subhead, $message, $reply_to_emai
 
     add_filter( 'wp_mail_content_type', 'nanosupport_mail_content_type' );
 
-        //send the email
-        $ns_email = wp_mail( $to_email, $subject, $email_content, $headers );
+    //send the email
+    $ns_email = wp_mail( $to_email, $subject, $email_content, $headers );
 
     //to stop conflict
     remove_filter( 'wp_mail_content_type', 'nanosupport_mail_content_type' );
@@ -110,36 +110,54 @@ function nanosupport_new_ticket_notification_email( $new_status, $old_status, $p
          */
         $ticket_view_link = get_permalink( $ticket_id );
         $post_excerpt     = wp_trim_words( $post->post_content, 70, null );
-        
 
         /* translators: Site title */
-        $subject = sprintf ( __( 'New Ticket Submitted — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+        $subject = sprintf ( __( 'New RMA Submitted — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
 
-        $email_subhead = __( 'New Ticket Submitted', 'nanosupport' );
+        $email_subhead = __( 'New RMA Submitted', 'nanosupport' );
 
         $user_info = get_userdata($post->post_author);
+        $userdata_adresse = get_user_meta($user_info->ID, 'adresse', true);
+        $userdata_ville = get_user_meta($user_info->ID, 'ville', true);
+        $userdata_province = get_user_meta($user_info->ID, 'province', true);
+        $userdata_code_postal = get_user_meta($user_info->ID, 'code_postal', true);
+
+        $userdata_adresse_array = array( $userdata_adresse,  $userdata_ville,  $userdata_province,  $userdata_code_postal );
+
+        $check_alternative_adresse = get_user_meta( $user_info->ID, 'meta_alternative_adresse', true );
 
         $message = '';
         // Ticket message
-        $message = '<p style="margin: 0 0 16px;">'. wp_kses( __( 'A support ticket is submitted and is <strong>Pending</strong>.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
+        $message = '<p style="margin: 0 0 16px; text-align: center;">'. wp_kses( __( 'New RMA is submitted and is <strong>Pending</strong>.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
 
         // Ticket title and body content
         $message .= '<div style="padding-top: 10px;padding-bottom: 10px; text-align: center;">';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'company_name', true) .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'phone_number', true) .'</p>'; 
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. nl2br( $_POST['ns_ticket_return_adresse'] ) .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;"></p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_id .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_title .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_serial_number'] .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_issuse'] .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px; white-space: normal; word-break: break-word;">'. $post->post_content .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 5px 0 5px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 17.5px; font-weight: 600;">'. $post->post_title .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Serial Number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_serial_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Issuse', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_issuse'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Diagnosis and details', 'nanosupport' ) .'<br>'. $post->post_content .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( 'RMA internal references', 'nanosupport' ) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Request or reference number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Facility Name', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_establishment'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Responsible for the RMA', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_name'] .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( 'RMA contact info', 'nanosupport' ) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. get_user_meta($user_info->ID, 'company_name', true) .' '. get_user_meta($user_info->ID, 'phone_number', true) .'</p>';
+            if($check_alternative_adresse) {
+                if(isset($_POST['this_alternative_adresse'])) {
+                    $get_alternative_adresse = $check_alternative_adresse[$_POST['this_alternative_adresse']];
+                    $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $get_alternative_adresse) .'</p>';
+                } else {
+                    $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $userdata_adresse_array ) .'</p>';
+                }
+            } else {
+                $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $userdata_adresse_array ) .'</p>';
+            }
         $message .= '</div>';
 
 
         // Call-to-action button
-        $message .= '<p style="margin: 30px 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'Link to the Ticket', 'nanosupport' ) .'</a></p>';
+        $message .= '<p style="margin: 30px 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #86b854;margin: 0;padding: 0;border-color: #86b854;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'View RMA on support center', 'nanosupport' ) .'</a></p>';
         
         $author_email = $user_info->user_email;
 
@@ -166,31 +184,43 @@ function nanosupport_new_ticket_notification_email( $new_status, $old_status, $p
         
 
         /* translators: Site title */
-        $subject = sprintf ( __( 'A Ticket Was Closed — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+        $subject = sprintf ( __( 'RMA #%s Was Closed — %s — %s', 'nanosupport' ), $ticket_id, get_the_title($post), get_bloginfo( 'name', 'display' ) );
 
-        $email_subhead = __( 'A Ticket Was Closed', 'nanosupport' );
+        $email_subhead = __( 'A RMA Was Closed', 'nanosupport' );
 
         $user_info = get_userdata($post->post_author);
 
         $message = '';
         // Ticket message
-        $message = '<p style="margin: 0 0 16px; text-align: center;">'. wp_kses( __( 'A support ticket is now closed.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
+        $message = '<p style="margin: 0 0 16px; text-align: center;">'. wp_kses( __( 'A RMA is now closed.', 'nanosupport' ), array('strong' => array()) ) .'</p>';
 
         // Ticket title and body content
         $message .= '<div style="padding-top: 10px;padding-bottom: 10px; text-align: center;">';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_id .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'company_name', true) .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. get_user_meta($user_info->ID, 'phone_number', true) .'</p>'; 
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $post->post_title .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_serial_number'] .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. $_POST['ns_ticket_issuse'] .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px; white-space: normal; word-break: break-word;">'. $post->post_content .'</p>';
-            $message .= '<p style="margin: 10px 0 16px;font-size: 21px;">'. nl2br( $_POST['ns_ticket_return_adresse'] ) .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 5px 0 5px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 17.5px; font-weight: 600;">'. $post->post_title .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Serial Number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_serial_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Issuse', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_issuse'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Diagnosis and details', 'nanosupport' ) .'<br>'. $post->post_content .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( 'RMA internal references', 'nanosupport' ) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Request or reference number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Facility Name', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_establishment'] .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. __( 'Responsible for the RMA', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_name'] .'</p>';
+            $message .= '<p style="margin: 0px 15%; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( 'RMA contact info', 'nanosupport' ) .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. $user_info->first_name . ' ' . $user_info->last_name .'</p>';
+            $message .= '<p style="margin: 10px 0 16px;">'. get_user_meta($user_info->ID, 'company_name', true) .' '. get_user_meta($user_info->ID, 'phone_number', true) .'</p>';
+            if($check_alternative_adresse) {
+                if(isset($_POST['this_alternative_adresse'])) {
+                    $get_alternative_adresse = $check_alternative_adresse[$_POST['this_alternative_adresse']];
+                    $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $get_alternative_adresse) .'</p>';
+                } else {
+                    $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $userdata_adresse_array ) .'</p>';
+                }
+            } else {
+                $message .= '<p style="margin: 10px 0 16px;">'. implode("\n", $userdata_adresse_array ) .'</p>';
+            }
         $message .= '</div>';
 
         // Call-to-action button
-        $message .= '<p style="margin: 30px 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'Link to the Ticket', 'nanosupport' ) .'</a></p>';
+        $message .= '<p style="margin: 30px 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #86b854;margin: 0;padding: 0;border-color: #86b854;border-style: solid;border-width: 1px 20px;" href="'. esc_url($ticket_view_link) .'">'. __( 'View RMA on support center', 'nanosupport' ) .'</a></p>';
                 
         $author_email = $user_info->user_email;
 
@@ -263,7 +293,7 @@ function nanosupport_handle_account_opening_email( $user_id = '', $generated_pas
     $message .= '<p style="margin: 0 0 16px;">';
         /* translators: The next thing is the link to the site login URL */
         $message .= __( 'Log in here:', 'nanosupport' );
-        $message .= '&nbsp;<a style="color: #1c5daa; text-decoration: none;" href="'. wp_login_url() .'" target="_blank" title="'. esc_attr__( 'Account Login URL', 'nanosupport' ) .'">'. wp_login_url() .'</a>';
+        $message .= '&nbsp;<a style="color: #86b854; text-decoration: none;" href="'. wp_login_url() .'" target="_blank" title="'. esc_attr__( 'Account Login URL', 'nanosupport' ) .'">'. wp_login_url() .'</a>';
     $message .= '</p>';
 
     //send the email
@@ -309,15 +339,15 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
     // Don't send email on self-response
     if( $notify_support_seeker_on_responses && ( $last_response['user_id'] != $author_id ) && isset($author_email) && is_email($author_email) ) :
         /* translators: Site title */
-        $subject = sprintf ( esc_html__( 'Your ticket is replied — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+        $subject = sprintf ( esc_html__( 'Your RMA is replied — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
 
-        $email_subhead = esc_html__( 'Support Ticket Replied', 'nanosupport' );
+        $email_subhead = esc_html__( 'Support RMA Replied', 'nanosupport' );
 
         // Email Content
         $message = '';
         $message = '<p style="margin: 0 0 16px;">';
             /* translators: 1. ticket title 2. site title 3. user display name followed by ticket response excerpt */
-            $message .= sprintf( wp_kses( __( 'Your support ticket &rsquo;<strong>%1$s</strong>&rsquo; on %2$s is replied by <em>%3$s</em>:', 'nanosupport' ), array('strong'=>array(), 'em'=>array()) ), get_the_title($post_id), get_bloginfo( 'name', 'display' ), ns_user_nice_name($last_response['user_id']) );
+            $message .= sprintf( wp_kses( __( 'Your RMA &rsquo;<strong>%1$s</strong>&rsquo; on %2$s is replied by <em>%3$s</em>:', 'nanosupport' ), array('strong'=>array(), 'em'=>array()) ), get_the_title($post_id), get_bloginfo( 'name', 'display' ), ns_user_nice_name($last_response['user_id']) );
         $message .= '</p>';
 
         // Ticket response content
@@ -325,7 +355,7 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
             $message .= '<p style="margin: 0;font-style: italic">'. wp_trim_words( $comment_object->comment_content, 55 ) .'</p>';
         $message .= '</div>';
 
-        $message .= '<p style="margin: 0 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
+        $message .= '<p style="margin: 0 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #86b854;margin: 0;padding: 0;border-color: #86b854;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
 
         // Send the email
         ns_email( $author_email, $subject, $email_subhead, $message );
@@ -350,15 +380,15 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
         if( ! empty($agent_email) && is_email($agent_email) ) :
 
             /* translators: Site title */
-            $subject = sprintf ( __( 'An assigned ticket is replied — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+            $subject = sprintf ( __( 'An assigned RMA is replied — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
 
-            $email_subhead = esc_html__( 'Support Ticket Replied', 'nanosupport' );
+            $email_subhead = esc_html__( 'Support RMA Replied', 'nanosupport' );
 
             // Email Content
             $message = '';
             $message = '<p style="margin: 0 0 16px;">';
                 /* translators: 1. ticket title 2. site title 3. user display name */
-                $message .= sprintf( wp_kses( __( 'An assigned support ticket &rsquo;<strong>%1$s</strong>&rsquo; on %2$s is replied by <em>%3$s</em>:', 'nanosupport' ), array('strong'=>array(), 'em'=>array()) ), get_the_title($post_id), get_bloginfo( 'name', 'display' ), ns_user_nice_name($last_response['user_id']) );
+                $message .= sprintf( wp_kses( __( 'An assigned RMA &rsquo;<strong>%1$s</strong>&rsquo; on %2$s is replied by <em>%3$s</em>:', 'nanosupport' ), array('strong'=>array(), 'em'=>array()) ), get_the_title($post_id), get_bloginfo( 'name', 'display' ), ns_user_nice_name($last_response['user_id']) );
             $message .= '</p>';
 
             // Ticket response content
@@ -366,7 +396,7 @@ function nanosupport_email_on_ticket_response( $comment_ID, $comment_object ) {
                 $message .= '<p style="margin: 0;font-style: italic">'. wp_trim_words( $comment_object->comment_content, 55 ) .'</p>';
             $message .= '</div>';
 
-            $message .= '<p style="margin: 0 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
+            $message .= '<p style="margin: 0 0 16px;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #86b854;margin: 0;padding: 0;border-color: #86b854;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
 
             // Send the email
             ns_email( $agent_email, $subject, $email_subhead, $message );
@@ -427,23 +457,23 @@ function ns_notify_agent_assignment( $user_id, $ticket_id = null ) {
     $email = $user ? $user->user_email : '';
 
     /* translators: Site title */
-    $subject = sprintf ( esc_html__( 'A ticket is assigned to you — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+    $subject = sprintf ( esc_html__( 'A RMA is assigned to you — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
 
-    $email_subhead = esc_html__( 'Ticket Assigned', 'nanosupport' );
+    $email_subhead = esc_html__( 'RMA Assigned', 'nanosupport' );
 
     //Email Content
     $message = '';
     /* translators: Site title */
-    $message = '<p style="margin: 0 0 16px;">'. sprintf( __( 'The following support ticket on &ldquo;%s&rdquo; is assigned to you:', 'nanosupport' ), get_bloginfo( 'name', 'display' ) ) .'</p>';
+    $message = '<p style="margin: 0 0 16px;">'. sprintf( __( 'The following RMA on &ldquo;%s&rdquo; is assigned to you:', 'nanosupport' ), get_bloginfo( 'name', 'display' ) ) .'</p>';
 
         $get_ticket_link = get_permalink($ticket_id);
 
         // Ticket title
         $message .= '<div style="border-left: 5px solid #ccc;padding-top: 10px;padding-left: 20px;padding-bottom: 10px;margin-bottom: 20px;">';
-            $message .= '<p style="margin: 0;font-weight: bold"><a style="text-decoration: none;color: #1c5daa;font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;" target="_blank" href="'. esc_url($get_ticket_link) .'">'. get_the_title($ticket_id) .'</a></p>';
+            $message .= '<p style="margin: 0;font-weight: bold"><a style="text-decoration: none;color: #86b854;font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;" target="_blank" href="'. esc_url($get_ticket_link) .'">'. get_the_title($ticket_id) .'</a></p>';
         $message .= '</div>';
 
-    $message .= '<p style="margin: 0 0 16px;">'. __( 'You may get occasional emails notifying any movement of the ticket', 'nanosupport' ) .'</p>';
+    $message .= '<p style="margin: 0 0 16px;">'. __( 'You may get occasional emails notifying any movement of the RMA', 'nanosupport' ) .'</p>';
 
     // send the email
     $agent_email = ns_email( $email, $subject, $email_subhead, $message );
@@ -473,9 +503,9 @@ function nanosupport_email_on_ticket_update( $post ) {
     $ticket_id = $post->ID;
 
     /* translators: Site title */
-    $subject = sprintf ( __( 'Ticket Updated — %s', 'nanosupport' ), get_bloginfo( 'name', 'display' ) );
+    $subject = sprintf ( __( 'RMA #%s Updated — %s — %s', 'nanosupport' ), $_POST['ns_internal_rma_number'], get_the_title($post), get_bloginfo( 'name', 'display' ) );
 
-    $email_subhead = __( 'Ticket Updated', 'nanosupport' );
+    $email_subhead = sprintf ( __( 'RMA #%s Updated', 'nanosupport' ), $_POST['ns_internal_rma_number'] );
 
     // We unhook this action to prevent an infinite loop
     remove_action( 'pre_post_update', 'nanosupport_email_on_ticket_update' );
@@ -484,7 +514,7 @@ function nanosupport_email_on_ticket_update( $post ) {
         return;
 
 
-    $author_id      = get_post_field( 'post_author', $ticket_id );
+    $author_id      = get_post_field( 'post_author', $post );
     $author_email   = get_the_author_meta( 'user_email', $author_id );
     $ticket_meta    = ns_get_ticket_meta( $post );
     $meta_data_additional_status = get_post_meta( $post, '_ns_internal_additional_status', true );
@@ -499,6 +529,16 @@ function nanosupport_email_on_ticket_update( $post ) {
     $ticket_new_response = $_POST['ns_new_response'];
     $ticket_internal_note = $_POST['ns_internal_note'];
 
+    $args = array(
+        'post_type'      => 'nanosupport',
+        'posts_per_page' => -1,
+        'post_status'    =>'any',
+        'meta_key'       => 'ns_internal_rma_number',
+        'meta_value'     => $_POST['ns_internal_rma_number']
+    );
+
+    $my_posts = get_posts( $args );
+
     if (empty($ticket_new_response) && $ticket_internal_note == $meta_data_internal_note ) :
 
         // Now hook the action
@@ -508,78 +548,58 @@ function nanosupport_email_on_ticket_update( $post ) {
         // Ticket response content
         $message .= '<div style="text-align: center;">';
 
-        $message .= '<p style="margin: 0;font-style: italic">'. get_the_title($post) .'</p>';
-
-        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_ticket_serial_number'] .'</p>';
+        $term_form_factor = get_term( intval($_POST['ns_ticket_form_factor'])  , 'nanosupport_form_factor' );
+        $lang_form_factor_term = qtranxf_use(qtranxf_getLanguage(), $term_form_factor->name);
         
-        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_ticket_issuse'] .'</p>';
+        $message .= '<p style="margin: 0px 15%; padding: 5px 0 5px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 17.5px; font-weight: 600;">'. get_the_title($post) .' - '. $lang_form_factor_term .'</p>';
 
-        $message .= '<p style="margin: 0;font-style: italic">'. $_POST['ns_internal_rma_number'] .'</p>';
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Serial Number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_serial_number'] .'</p>';
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Issuse', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_issuse'] .'</p>';
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Diagnosis and details', 'nanosupport' ) .'<br>'. $my_posts[0]->post_content .'</p>';
 
-        if( 'pending' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-normal">'. __( 'Pending', 'nanosupport' ) .'</span>';
-        } elseif( 'solved' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-success">'. __( 'Solved', 'nanosupport' ) .'</span>';
-        } elseif( 'shipping_back' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Shipping back', 'nanosupport' ) .'</span>';
-        } elseif( 'inspection' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Under Inspection', 'nanosupport' ) .'</span>';
-        } elseif( 'pending' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-primary">'. __( 'Pending', 'nanosupport' ) .'</span>';
-        } elseif( 'open' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Open', 'nanosupport' ) .'</span>';
-        } elseif( 'return_to_sunterra' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return computer to Sunterra', 'nanosupport' ) .'</span>';
-        } elseif( 'return_part_to_sunterra' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return computer part to Sunterra for exchange', 'nanosupport' ) .'</span>';
-        } elseif( 'send_part_wo_return' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Sending computer part without return', 'nanosupport' ) .'</span>';
-        } elseif( 'part_in_order' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Part in order', 'nanosupport' ) .'</span>';
-        } elseif( 'refused' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-refuse">'. __( 'RMA refused', 'nanosupport' ) .'</span>';
-        } elseif( 'hold' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'RMA on hold (Out of Stock)', 'nanosupport' ) .'</span>';
-        } elseif( 'return_laptop_evaluation' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for evaluation', 'nanosupport' ) .'</span>';
-        } elseif( 'return_laptop_credit' === $_POST['ns_ticket_status'] ) {
-            $ticket_status = '<span class="ns-label ns-label-warning">'. __( 'Return the laptop for credit', 'nanosupport' ) .'</span>';
-        }
+        $message .= '<p style="margin: 0px 15%; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( 'Last update', 'nanosupport' ) .'</p>';
 
-        if ( $_POST['ns_ticket_status'] != $ticket_meta['status']['value']  ) {
+        $term_old = wp_get_post_terms($post, 'nanosupport_status', array("fields" => "all"));
 
-            $message .= '<p style="margin: 10px 0 0;">'. __( 'RMA status', 'nanosupport' ) .'</p>';
+        $term_new = get_term( intval($_POST['ns_ticket_status'])  , 'nanosupport_status' );
+        $lang_text_term = qtranxf_use(qtranxf_getLanguage(), $term_new->name);
 
-            $message .= '<p style="margin: 0 0 5px;font-style: italic">'. $ticket_status .'</p>';
+        $ticket_status = '<span class="ns-label ns-label-'. $term_new->slug .'" style="font-weight: 600;">'. $lang_text_term .'</span>';
+
+        if ( $term_new->term_id != $term_old[0]->term_id  ) {
+
+            $message .= '<p style="margin: 10px 0 0;" style="font-weight: 600;">'. __( 'RMA status', 'nanosupport' ) .'<br>'. $ticket_status .'</p>';
 
          }
 
         if ( $_POST['ns_internal_additional_status'] != $meta_data_additional_status  ) {
 
-            $message .= '<p style="margin: 10px 0 0;">'. __( 'RMA additional status', 'nanosupport' ) .'</p>';
+            $message .= '<p style="margin: 10px 0 0;" style="font-weight: 600;">'. __( 'RMA additional status', 'nanosupport' ) .'<br>'. $_POST['ns_internal_additional_status'] .'</p>';
 
-            $message .= '<p style="margin: 0 0 5px; font-style: italic">'. $_POST['ns_internal_additional_status'] .'</p>';
-    
         }
 
         if ( $_POST['ns_ticket_traking_number'] != $meta_data_traking_number ) {
 
-            $message .= '<p style="margin: 10px 0 0;">'. __( 'Nationex traking number', 'nanosupport' ) .'</p>';
-
-            $message .= '<p style="margin: 0 0 5px; font-style: italic">'. $_POST['ns_ticket_traking_number'] .'</p>';
+            $message .= '<p style="margin: 10px 0 0;" style="font-weight: 600;">'. __( 'Traking number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_traking_number'] .'</p>';
 
         }
 
+        $message .= '<p style="margin: 10px 15% 0; padding: 10px 0 10px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 15px; font-weight: 600;">'. __( ' Internal References', 'nanosupport' ) .'</p>';
+        
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Request or reference number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_number'] .'</p>';
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Facility Name', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_establishment'] .'</p>';
+        $message .= '<p style="margin: 10px 0 16px;">'. __( 'Responsible for the RMA', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_internal_reference_name'] .'</p>';
+        
         $message .= '</div>';
 
-        $message .= '<p style="margin: 0 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #1c5daa;margin: 0;padding: 0;border-color: #1c5daa;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View Ticket', 'nanosupport' ) .'</a></p>';
-        
+        $message .= '<p style="margin: 15px 0 16px; text-align: center;"><a style="font-family: \'Helvetica Neue\', \'Helvetica\', Helvetica, Roboto, Arial, sans-serif;font-size: 100%;line-height: 2;color: #ffffff;border-radius: 25px;display: inline-block;cursor: pointer;font-weight: bold;text-decoration: none;background: #86b854;margin: 0;padding: 0;border-color: #86b854;border-style: solid;border-width: 1px 20px;" href="'. get_permalink($post_id) .'">'. __( 'View RMA', 'nanosupport' ) .'</a></p>';
+
         $args = array(
             'post_type'      => 'nanosupport',
             'posts_per_page' => -1,
-            'post_status' =>'any',
+            'post_status'    =>'any',
             'meta_key'       => 'ns_internal_rma_number',
-            'meta_value'       => $_POST['ns_internal_rma_number']
+            'meta_value'     => $_POST['ns_internal_rma_number']
         );
 
         $my_posts = get_posts( $args );

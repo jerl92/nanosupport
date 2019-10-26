@@ -285,6 +285,8 @@ include_once 'includes/ns-cpt-knowledgebase.php';
 include_once 'includes/ns-metaboxes.php';
 /** Miscellaneous functions **/
 include_once 'includes/ns-functions.php';
+/** AJAX functions **/
+include_once 'includes/ns-ajax-functions.php';
 
 /** E-Commerce Support */
 include_once 'includes/class-ecommerce.php';
@@ -292,12 +294,17 @@ include_once 'includes/class-ecommerce.php';
 /** Handling emails **/
 include_once 'includes/ns-email-functions.php';
 
+/** Shortcode: Alternative Adresse **/
+include_once 'includes/shortcodes/ns-alternative-adresse.php';
 /** Shortcode: Support Desk **/
 include_once 'includes/shortcodes/ns-support-desk.php';
 /** Shortcode: Submit Ticket **/
 include_once 'includes/shortcodes/ns-submit-ticket.php';
 /** Shortcode: Knowledgebase **/
 include_once 'includes/shortcodes/ns-knowledgebase.php';
+
+/** Widgets **/
+include_once 'includes/ns-widgets-functions.php';
 
 /** Dashboard **/
 include_once 'includes/ns-dashboard.php';

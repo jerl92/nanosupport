@@ -80,3 +80,29 @@ var activity_chart = c3.generate({
         height: 200
     }
 });
+
+
+jQuery(document).ready(function($) {
+    adaptColor('.ns-label-dashboard');
+});
+
+function adaptColor(selector) {
+    var rgb = jQuery(selector).css("background-color");
+
+    if (rgb.match(/^rgb/)) {
+    var a = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/),
+        r = a[1],
+        g = a[2],
+        b = a[3];
+    }
+    var hsp = Math.sqrt(
+    0.299 * (r * r) +
+    0.587 * (g * g) +
+    0.114 * (b * b)
+    );
+    if (hsp > 127.5) {
+        jQuery(selector).css('color', 'black');
+    } else {
+        jQuery(selector).css('color', 'white');
+    }
+};

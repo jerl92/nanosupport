@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NanoSupport 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/nanodesigns/nanosupport/issues\n"
-"POT-Creation-Date: 2019-04-07 13:18+0000\n"
+"POT-Creation-Date: 2019-04-07 12:23+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -444,7 +444,9 @@ msgstr ""
 
 #: includes/ns-metaboxes.php:373 includes/ns-email-functions.php:137
 #: includes/ns-email-functions.php:201 includes/ns-email-functions.php:557
+#: includes/shortcodes/ns-support-desk.php:212
 #: includes/shortcodes/ns-support-desk.php:358
+#: includes/shortcodes/ns-submit-ticket.php:167
 msgid "Issuse"
 msgstr ""
 
@@ -822,6 +824,7 @@ msgstr ""
 #: includes/ns-ajax-functions.php:173
 #: includes/shortcodes/ns-alternative-adresse.php:40
 #: includes/shortcodes/ns-alternative-adresse.php:66
+#: includes/shortcodes/ns-submit-ticket.php:383
 msgid "Ville"
 msgstr ""
 
@@ -837,6 +840,7 @@ msgstr ""
 #: includes/ns-ajax-functions.php:175
 #: includes/shortcodes/ns-alternative-adresse.php:46
 #: includes/shortcodes/ns-alternative-adresse.php:68
+#: includes/shortcodes/ns-submit-ticket.php:385
 msgid "Code Postal"
 msgstr ""
 
@@ -844,6 +848,7 @@ msgstr ""
 #: includes/ns-ajax-functions.php:176
 #: includes/shortcodes/ns-alternative-adresse.php:49
 #: includes/shortcodes/ns-alternative-adresse.php:69
+#: includes/shortcodes/ns-submit-ticket.php:386
 msgid "Pays"
 msgstr ""
 
@@ -954,8 +959,6 @@ msgid "From Factor"
 msgstr ""
 
 #: includes/ns-cpt-nanosupport.php:239
-#: includes/shortcodes/ns-support-desk.php:212
-#: includes/shortcodes/ns-submit-ticket.php:167
 msgid "Issues"
 msgstr ""
 
@@ -2123,18 +2126,6 @@ msgstr ""
 
 #: includes/shortcodes/ns-submit-ticket.php:372
 msgid "Select Adresse"
-msgstr ""
-
-#: includes/shortcodes/ns-submit-ticket.php:383
-msgid "City"
-msgstr ""
-
-#: includes/shortcodes/ns-submit-ticket.php:385
-msgid "Postal code"
-msgstr ""
-
-#: includes/shortcodes/ns-submit-ticket.php:386
-msgid "Country"
 msgstr ""
 
 #: includes/shortcodes/ns-submit-ticket.php:421
