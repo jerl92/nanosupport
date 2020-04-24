@@ -35,11 +35,6 @@ function ns_ajax_scripts() {
 		wp_register_script( 'ns-comment-ajax-get-post-scripts', $url . "js/ajax.comment.post.js", array( 'jquery' ), '1.0.0', true );
 		wp_localize_script( 'ns-comment-ajax-get-post-scripts', 'get_post_comment_ajax_url', admin_url( 'admin-ajax.php', 'relative' ) );
         wp_enqueue_script( 'ns-comment-ajax-get-post-scripts' );
-        
-        /* AJAX edit adresse to user */
-        wp_register_script( 'ns-comment-ajax-get-scripts', $url . "js/ajax.comment.get.js", array( 'jquery' ), '1.0.0', true );
-        wp_localize_script( 'ns-comment-ajax-get-scripts', 'get_comment_ajax_url', admin_url( 'admin-ajax.php', 'relative' ) );
-        wp_enqueue_script( 'ns-comment-ajax-get-scripts' );
 	}
 
 }
@@ -67,8 +62,8 @@ function ajax_ns_add_adresse($post) {
 
             $count_alternative_adresse = count($check_alternative_adresse) - 1;
 
-            $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $count_alternative_adresse . '" data-id="' . $count_alternative_adresse . '" type="button" value="Edit"></form>';
-            $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $count_alternative_adresse . '" data-id="' . $count_alternative_adresse . '" type="button" value="Remove"></form>';
+            $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $count_alternative_adresse . '" data-id="' . $count_alternative_adresse . '" type="button" value="'. esc_html__( 'Edit', 'nanosupport' )  .'"></form>';
+            $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $count_alternative_adresse . '" data-id="' . $count_alternative_adresse . '" type="button" value="'. esc_html__( 'Remove', 'nanosupport' )  .'"></form>';
 
             $html[] = '<tr><th>'.$alternative_adresse['organization'].'</th><th>'.$alternative_adresse['adresse'].'</th><th>'.$alternative_adresse['ville'].'</th><th>'.$alternative_adresse['province'].'</th><th>'.$alternative_adresse['code_postal'].'</th><th>'.$alternative_adresse['pays'].'</th><th>'. $edit_form .'</th><th>' . $remove_form . '</th></tr>';
         }
@@ -104,8 +99,8 @@ function ajax_ns_remove_adresse($post) {
             $html[] = '<tbody><tr><th>'. esc_html__( 'Organization', 'nanosupport' ) .'</th><th>'. esc_html__( 'Adresse', 'nanosupport' ) .'</th><th>'. esc_html__( 'Ville', 'nanosupport' ) .'</th><th>'. esc_html__( 'Province', 'nanosupport' ) .'</th><th>'. esc_html__( 'Code Postal', 'nanosupport' ) .'</th><th>'. esc_html__( 'Pays', 'nanosupport' ) .'</th><th>'. esc_html__( 'Edit', 'nanosupport' ) .'</th><th>'. esc_html__( 'Delete', 'nanosupport' ) .'</th></tr>';
 
             foreach ($check_alternative_adresse as $alternative_adresse) {
-                $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $i . '" data-id="' . $i . '" type="button" value="Edit"></form>';
-                $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $i . '" data-id="' . $i . '" type="button" value="Remove"></form>';
+                $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $i . '" data-id="' . $i . '" type="button" value="'. esc_html__( 'Edit', 'nanosupport' )  .'"></form>';
+                $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $i . '" data-id="' . $i . '" type="button" value="'. esc_html__( 'Remove', 'nanosupport' )  .'"></form>';
                 $html[] .= '<tr><th>'.$alternative_adresse['organization'].'</th><th>'.$alternative_adresse['adresse'].'</th><th>'.$alternative_adresse['ville'].'</th><th>'.$alternative_adresse['province'].'</th><th>'.$alternative_adresse['code_postal'].'</th><th>'.$alternative_adresse['pays'].'</th><th>' . $edit_form . '</th><th>' . $remove_form . '</th></tr>';
                 $i++;
             }
@@ -142,8 +137,8 @@ function ajax_ns_edit_adresse($post) {
             $html[] = '<tbody><tr><th>'. esc_html__( 'Organization', 'nanosupport' ) .'</th><th>'. esc_html__( 'Adresse', 'nanosupport' ) .'</th><th>'. esc_html__( 'Ville', 'nanosupport' ) .'</th><th>'. esc_html__( 'Province', 'nanosupport' ) .'</th><th>'. esc_html__( 'Code Postal', 'nanosupport' ) .'</th><th>'. esc_html__( 'Pays', 'nanosupport' ) .'</th><th>'. esc_html__( 'Edit', 'nanosupport' ) .'</th><th>'. esc_html__( 'Delete', 'nanosupport' ) .'</th></tr>';
 
             foreach ($check_alternative_adresse as $alternative_adresse) {
-                $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $i . '" data-id="' . $i . '" type="button" value="Edit"></form>';
-                $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $i . '" data-id="' . $i . '" type="button" value="Remove"></form>';
+                $edit_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_edit" class="alternative_adresse_edit" name="alternative_adresse_edit_' . $i . '" data-id="' . $i . '" type="button" value="'. esc_html__( 'Edit', 'nanosupport' )  .'"></form>';
+                $remove_form = '<form method="post" action="' . admin_url('admin-ajax.php') . '"><input id="alternative_adresse_remove" class="alternative_adresse_remove" name="alternative_adresse_remove_' . $i . '" data-id="' . $i . '" type="button" value="'. esc_html__( 'Remove', 'nanosupport' )  .'"></form>';
                 $html[] .= '<tr><th>'.$alternative_adresse['organization'].'</th><th>'.$alternative_adresse['adresse'].'</th><th>'.$alternative_adresse['ville'].'</th><th>'.$alternative_adresse['province'].'</th><th>'.$alternative_adresse['code_postal'].'</th><th>'.$alternative_adresse['pays'].'</th><th>' . $edit_form . '</th><th>' . $remove_form . '</th></tr>';
                 $i++;
             }
@@ -204,7 +199,9 @@ function ajax_ns_get_post_comment($post) {
 
     if ( is_user_logged_in() ) {
 
-        if( current_user_can('editor') || current_user_can('administrator') || current_user_can('ticket-agent') ) {
+        $current_user = wp_get_current_user();
+
+        if( current_user_can('administrator') || current_user_can('ticket-agent') ) {
             $query = array(
                 'post_type' 	=> 'nanosupport',
                 'posts_per_page' => -1,
@@ -221,10 +218,10 @@ function ajax_ns_get_post_comment($post) {
             $query = array(
                 'post_type' 	=> 'nanosupport',
                 'posts_per_page' => -1,
-                'author'        =>  absint( get_current_user_id() ),
+                'author'        =>  $current_user->ID,
                 'order'     	=> 'DESC',
                 'orderby'       => 'modified',
-                'comment_count' => array(
+                'comment_count' => array(   
                     array(
                         'value' => 0,
                         'compare' => '!=',
@@ -236,95 +233,118 @@ function ajax_ns_get_post_comment($post) {
         $loop = new WP_Query($query);
 
         $i = 0;
+        $y = 0;
+        $z = 0;
 
         if ( $loop->have_posts() ) {
             while ( $loop->have_posts() ) : $loop->the_post();
-                if( 0 < get_comments_number(get_the_id()) && 3 > $i  ) {
+                if( 0 < get_comments_number(get_the_id()) && 6 > $i  ) {
                     $html[$i] = get_the_id();
                     $i++; 
                 }
             endwhile;
         } else {
-            $html[$i] = esc_html__( 'No reponse found', 'nanosupport' );
+            $html[$i] = null;
         }
 
         wp_reset_postdata();
 
-        wp_send_json ( $html );
+        foreach($html as $postid) {
+            $args = array(
+                'post_id'       =>  $postid,
+                'type'          => 'nanosupport_response',
+                'post_type' 	=> 'nanosupport',
+                'status'    	=> 'approve',
+                'orderby' => 'comment_date_gmt',
+                'order' => 'DESC',
+                'number'        => '1'
+            );
 
-    } 
-}
+            $comments[$x] = get_comments($args);
 
-/* AJAX action callback */
-add_action( 'wp_ajax_ns_get_comment', 'ajax_ns_get_comment' );
-add_action( 'wp_ajax_nopriv_ns_get_comment', 'ajax_ns_get_comment' );
-function ajax_ns_get_comment($post) {
-
-    if ( is_user_logged_in() ) {
-
-        $postid = $_POST['object_id'];
-
-        $ticket_meta = ns_get_ticket_meta( $postid );
-    
-        $args = array(
-            'post_id'       =>  $postid,
-            'type'          => 'nanosupport_response',
-            'post_type' 	=> 'nanosupport',
-            'status'    	=> 'approve',
-            'order'     	=> 'DESC',
-            'number'        => '3',
-            'orderby'       => 'comment_date_gmt'
-        );
-
-        $comments = get_comments($args);
-
-        $found_count = count(  $comments );
-
-        if ($comments) {
-
-            $term_list = wp_get_post_terms( $postid, 'nanosupport_status', array("fields" => "all"));
-            $get_term_color = get_term_meta( $term_list[0]->term_id, 'meta_color', true);
-
-            $ticket_issuse = get_post_meta( $postid, '_ns_ticket_issuse', true );
-
-            $html[] = '<div class="ticket-cards-widget" style="background-color: rgba(115, 109, 109, 0.1); border-radius: 10px; box-shadow: 10px 15px 15px rgba(0,0,0,0.25); ">';
-
-            $html[] .= '<h3 style="margin: 10px 15px 0 15px; padding-top: 10px;"><a class="ticket-title-shadow" style="color: '. $get_term_color .';" href="'. get_post_permalink($postid) .'">'. get_the_title($postid) .'</a><div style="float: right;">'. $ticket_meta['status']['label'] .'</a></h3>';
-            $html[] .= '<h4 style="margin: 10px 15px 0 15px;">RMA #'. $postid .'<p style="margin: 0 5px 5px 0;">'. $ticket_issuse .'</p></h4>';
-
-            foreach ($comments as $comment ) {
-
-                $fresh_response = (isset($_GET['ns_success']) || isset($_GET['ns_cm_success']) ) && $found_count == $counter ? 'new-response' : '';
-
-                $html[] .= '<div class="ticket-response-cards ns-cards'. $fresh_response .'">';
-                $html[] .= '<div class="ns-row">';
-                    $html[] .= '<div class="ns-col-sm-6">';
-                    $html[] .= '<div class="response-head">';
-                    $html[] .= '<h3 class="ticket-head" id="response-'. $fresh_response .'">';
-                    $html[] .= $comment->comment_author;
-                                $html[] .= '</h3>';
-                                $html[] .= '</div> <!-- /.response-head -->';
-                                $html[] .= '</div>';
-                                $html[] .= '<div class="ns-col-sm-6 response-dates">';
-                                $html[] .= date( 'd M Y h:iA', strtotime( $comment->comment_date ) );
-                        $html[] .= '</div>';
-                    $html[] .= '</div> <!-- /.ns-row -->';
-                    $html[] .= '<div class="ticket-response">';
-                        $html[] .= wpautop( $comment->comment_content );
-                    $html[] .= '</div>';
-                
-                    $html[] .= '</div> <!-- /.ticket-response-cards -->';
-
-                $counter++;
-            
+            foreach ( $comments as $comment ) {
+                    $comment_dates[$y]['time'] = get_comment_date( 'U', $comment[0]->comment_ID );
+                    $comment_dates[$y]['id'] = $comment[0]->comment_post_ID;
+                    $y++;
             }
 
-            $html[] .= '</div>';
+        }
+		
+		rsort( $comment_dates );	        
+		
+        array_unique( $comment_dates['id'] );       
+        
+        foreach( $comment_dates as $postid ) {
 
-           }
+            $ticket_meta = ns_get_ticket_meta( $postid['id'] );
+    
+            if ( $postid['id'] != null ) {
+                $args = array(
+                    'post_id'       =>  $postid['id'],
+                    'type'          => 'nanosupport_response',
+                    'post_type' 	=> 'nanosupport',
+                    'status'    	=> 'approve',
+                    'order'     	=> 'DESC',
+                    'number'        => '3',
+                    'orderby'       => 'comment_date_gmt'
+                );
 
-           $arr = implode("", $html);
+                $comments = get_comments($args);
+            } else {
+                $comments = null;
+            }
 
+            $found_count = count(  $comments );
+
+            if ($comments != null) {
+
+                $term_list = wp_get_post_terms( $postid['id'], 'nanosupport_status', array("fields" => "all"));
+                $get_term_color = get_term_meta( $term_list[0]->term_id, 'meta_color', true);
+
+                $ticket_issuse = get_post_meta( $postid['id'], '_ns_ticket_issuse', true );
+
+                $ticket_serial_number = get_post_meta( $postid['id'], '_ns_ticket_serial_number', true );
+
+                $html_[] = '<div class="ticket-cards-widget" style="background-color: rgba(115, 109, 109, 0.1); border-radius: 10px; box-shadow: 10px 15px 15px rgba(0,0,0,0.25); ">';
+
+                $html_[] .= '<h3 style="margin: 10px 15px 0 15px; padding-top: 10px;"><a class="ticket-title-shadow" style="color: '. $get_term_color .';" href="'. get_post_permalink($postid['id']) .'">'. get_the_title($postid['id']) .'</a><div style="float: right;">'. $ticket_meta['status']['label'] .'</a></h3>';
+                $html_[] .= '<h4 style="margin: 10px 15px 0 15px;"><p style="margin: 0 5px 5px 0;">' . $ticket_serial_number . '</p><p style="margin: 0 5px 5px 0;">RMA #'. $postid['id'] .'</p><p style="margin: 0 5px 5px 0;">'. $ticket_issuse .'</p></h4>';
+
+                foreach ($comments as $comment ) {
+
+                    $fresh_response = (isset($_GET['ns_success']) || isset($_GET['ns_cm_success']) ) && $found_count == $counter ? 'new-response' : '';
+
+                    $html_[] .= '<div class="ticket-response-cards ns-cards'. $fresh_response .'">';
+                    $html_[] .= '<div class="ns-row">';
+                        $html_[] .= '<div class="ns-col-sm-6">';
+                        $html_[] .= '<div class="response-head">';
+                        $html_[] .= '<h3 class="ticket-head" id="response-'. $fresh_response .'">';
+                        $html_[] .= $comment->comment_author;
+                                    $html_[] .= '</h3>';
+                                    $html_[] .= '</div> <!-- /.response-head -->';
+                                    $html_[] .= '</div>';
+                                    $html_[] .= '<div class="ns-col-sm-6 response-dates">';
+                                    $html_[] .= date( 'd M Y h:iA', strtotime( $comment->comment_date ) );
+                            $html_[] .= '</div>';
+                        $html_[] .= '</div> <!-- /.ns-row -->';
+                        $html_[] .= '<div class="ticket-response">';
+                            $html_[] .= wpautop( $comment->comment_content );
+                        $html_[] .= '</div>';
+                    
+                        $html_[] .= '</div> <!-- /.ticket-response-cards -->';
+
+                    $counter++;
+                
+                }
+
+                $html_[] .= '</div>';
+
+            }
+
+        }
+                
+        $arr = implode( $html_ );
+        
         wp_send_json ( $arr );
 
     } 

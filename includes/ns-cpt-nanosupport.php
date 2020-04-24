@@ -506,6 +506,10 @@ function ns_admin_tickets_filter_query( $query ){
         if( !empty($_meta_form_query) ) {
             $query->set( 'meta_query', $_meta_form_query );
         }
+
+        if( !empty($_meta_query) && !empty($_meta_form_query) ) {
+            $query->set( 'meta_query', array($_meta_query, $_meta_form_query) );
+        }
         
     }
 
@@ -604,17 +608,17 @@ function ns_create_nanosupport_taxonomies_default() {
         $pending = 0;
         $solved = 0;
         foreach ( $status_terms as $status_term ) {
-            if ( $status_term->slug = 'open' ) {
+            if ( $status_term->slug == 'open' ) {
                 $open = 1;
             }
-            if ( $status_term->slug = 'pending' ) {
+            if ( $status_term->slug == 'pending' ) {
                 $pending = 1;
             }
-            if ( $status_term->slug = 'solved' ) {
+            if ( $status_term->slug == 'solved' ) {
                 $solved = 1;
             }
         }
-        if ( $open = 0 ) {
+        if ( $open == 0 ) {
             wp_insert_term(
                 'Open', // the term 
                 'nanosupport_status', // the taxonomy

@@ -23,11 +23,12 @@ function ns_get_post_comment($) {
             dataType: 'JSON',
 			success: function(data) {
 				$( '.ticket-responses-widget' ).empty();		
-				$.each( data, function( index, value ) {
-					sleep(25);
-					ns_get_comment(value);
-					sleep(25);
-				});
+				$('.ticket-responses-widget').append(data);
+				if( ns_label.length > 0 ) {
+					$('.ns-label').each(function() {
+							adaptColor($(this));
+					});
+				}
 				setTimeout(function(){ ns_get_post_comment($); }, 30000);
 			},
 			error: function(error) {
@@ -45,6 +46,36 @@ function sleep(milliseconds) {
 	  }
 	}
 }
+
+function adaptColor(selector) {
+	var rgb = $(selector).css("background-color");
+
+	if (rgb.match(/^rgb/)) {
+	var a = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/),
+			r = a[1],
+			g = a[2],
+			b = a[3];
+	}
+	var hsp = Math.sqrt(
+	0.299 * (r * r) +
+	0.587 * (g * g) +
+	0.114 * (b * b)
+	);
+	if ( r == 0 && g == 0 && b == 0) { 
+			return null;
+	} else {
+			var hsp = Math.sqrt(
+			0.299 * (r * r) +
+			0.587 * (g * g) +
+			0.114 * (b * b)
+			);
+			if (hsp > 127.5) {
+					$(selector).css('color', 'black');
+			} else {
+					$(selector).css('color', 'white');
+			}
+	}
+};
 
 jQuery(document).ready(function($) {
 	ns_get_post_comment($);

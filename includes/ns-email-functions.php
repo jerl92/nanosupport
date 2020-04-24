@@ -197,6 +197,7 @@ function nanosupport_new_ticket_notification_email( $new_status, $old_status, $p
         // Ticket title and body content
         $message .= '<div style="padding-top: 10px;padding-bottom: 10px; text-align: center;">';
             $message .= '<p style="margin: 0px 15%; padding: 5px 0 5px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 17.5px; font-weight: 600;">'. $post->post_title .'</p>';
+	        $message .= '<p style="margin: 10px 0 16px;">'. __( 'RMA Number', 'nanosupport' ) .'<br>'. $_POST['ns_internal_rma_number'] .'</p>';
             $message .= '<p style="margin: 10px 0 16px;">'. __( 'Serial Number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_serial_number'] .'</p>';
             $message .= '<p style="margin: 10px 0 16px;">'. __( 'Issuse', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_issuse'] .'</p>';
             $message .= '<p style="margin: 10px 0 16px;">'. __( 'Diagnosis and details', 'nanosupport' ) .'<br>'. $post->post_content .'</p>';
@@ -553,6 +554,7 @@ function nanosupport_email_on_ticket_update( $post ) {
         
         $message .= '<p style="margin: 0px 15%; padding: 5px 0 5px 0;" style="border-top: .5px solid rgba(0,0,0,.25); border-bottom: .5px solid rgba(0,0,0,.25); background-color: #86b854; color: #fff; font-size: 17.5px; font-weight: 600;">'. get_the_title($post) .' - '. $lang_form_factor_term .'</p>';
 
+	    $message .= '<p style="margin: 10px 0 16px;">'. __( 'RMA Number', 'nanosupport' ) .'<br>'. $_POST['ns_internal_rma_number'] .'</p>';
         $message .= '<p style="margin: 10px 0 16px;">'. __( 'Serial Number', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_serial_number'] .'</p>';
         $message .= '<p style="margin: 10px 0 16px;">'. __( 'Issuse', 'nanosupport' ) .'<br>'. $_POST['ns_ticket_issuse'] .'</p>';
         $message .= '<p style="margin: 10px 0 16px;">'. __( 'Diagnosis and details', 'nanosupport' ) .'<br>'. $my_posts[0]->post_content .'</p>';
