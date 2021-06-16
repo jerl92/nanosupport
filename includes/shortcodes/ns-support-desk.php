@@ -193,7 +193,12 @@ function ns_support_desk_page() {
 										<strong><?php _e( 'RMA Number', 'nanosupport' ); ?>:</strong>
 										<?php echo esc_attr( $get_rma_number ); ?>
 								</div>
-								<?php } //endif ?>
+								<?php } else { ?>
+									<div class="text-blocks">
+										<strong><?php _e( 'RMA Number', 'nanosupport' ); ?>:</strong>
+										<?php _e( 'Il faut identifier le numéro de RMA sur la boite ou dans la boite pour un suivi.', 'nanosupport' ); ?>
+								</div>
+								<?php } ?>
 
 								<div class="text-blocks">
 									<strong><?php _e( 'Inovice Number', 'nanosupport' ); ?>:</strong>

@@ -411,6 +411,22 @@ function ns_submit_support_ticket() {
                     <div class="ns-form-group">
                         <div class="ns-col-md-12 ns-col-sm-12 ns-col-xs-12">
 							<div class="ns-form-submit">
+
+								<span class="ns-text-dim ns-small">
+									<?php
+									echo esc_html_e( 'Il faut identifier le numéro de RMA sur la boite ou dans la boite pour avoir un suivi.', 'nanosupport' ) ; ?>
+								</span>
+
+								<span class="ns-text-dim ns-small">
+									<?php
+									echo esc_html_e( 'Il faut identifier le numéro de SO, PO ou Facture ainsi que le numéro de série pour obtenir un statut.', 'nanosupport' ) ; ?>
+								</span>
+
+								<span class="ns-text-dim ns-small">
+									<?php
+									echo esc_html_e( "Les RMA reste ouvert pendant un période 60 jours. Il seront ferme si ceux-ci n'ont pas de suivi.", 'nanosupport' ) ; ?>
+								</span>
+
 								<button type="submit" id="ns_submit" name="ns_submit" class="ns-btn ns-btn-primary ns-btn-ticket">
 									<?php esc_html_e( 'Submit', 'nanosupport' ); ?> *
 								</button>

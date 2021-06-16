@@ -76,7 +76,7 @@ $get_internal_reference_name = get_post_meta( get_the_ID(), '_ns_ticket_internal
 		<div class="ticket-question-card ns-cards <?php echo esc_attr($highlight_class); ?> " style="border-color: <?php echo $get_term_color ?>">
 			<div class="logo-on-print">
 				<div style="float:left; width: 65%; padding-top: 5px;">
-					<img alt="<?php bloginfo( 'name' ); ?>" src="https://sunterra.jerl92.tk/wp-content/uploads/2017/04/logo.png" />
+					<img alt="<?php bloginfo( 'name' ); ?>" src="https://sunterrapc.com/rma/wp-content/uploads/2017/04/logo.png" />
 					<div style="font-weight: 600; padding-top: 5px;">https://sunterrapc.com</div>
 				</div>
 				<div style="float:right; width: 35%; text-align: right;">
@@ -122,6 +122,8 @@ $get_internal_reference_name = get_post_meta( get_the_ID(), '_ns_ticket_internal
 								<?php if ($get_term_hide_rma == 0) { 
 									echo esc_attr( get_post_meta( get_the_ID(), 'ns_internal_rma_number', true ));
 								} ?>
+								</br>
+								<?php _e( 'Il faut identifier le numéro de RMA sur la boite ou dans la boite pour un suivi.', 'nanosupport' ); ?>
 							</p>
 						</div>
 						<div class="ns-col-sm-6 ns-col-xs-6">
@@ -130,7 +132,9 @@ $get_internal_reference_name = get_post_meta( get_the_ID(), '_ns_ticket_internal
 								<?php echo esc_attr( get_post_meta( get_the_ID(), '_ns_ticket_inovice_number', true )); ?>
 							</p>
 						</div>
+					</div>
 
+					<div class="ns-row ticket-meta">
 						<div class="ns-col-sm-3 ns-col-xs-6">
 							<p>
 								<strong><?php _e( 'Created', 'nanosupport' ); ?>:</strong><br>
@@ -171,32 +175,57 @@ $get_internal_reference_name = get_post_meta( get_the_ID(), '_ns_ticket_internal
 								?>
 							</p>
 						</div>
-	
+					</div>
+
+					<div class="ns-row ticket-meta" style="border-top: 0.5px solid rgba(0,0,0,.1); padding: 10px 0 10px 0;">
+				
+						<div class="ns-col-sm-6 ns-col-xs-11">
+							<?php $user = wp_get_current_user(); ?>
+							<?php $author = get_user_by( 'id', $post->post_author ); ?>
+
+							<?php if ( in_array( 'administrator', (array) $user->roles ) || in_array( 'ticket-agent', (array) $user->roles ) ) { ?>
+								<div class="ticket-author">
+									<?php echo '<i class="ns-icon-user"></i> '. $author->display_name; ?></br>
+								</div>																			
+							<?php } ?>
+						</div>
+
+						<div class="ns-col-sm-6 ns-col-xs-11">
+							<?php if ( in_array( 'administrator', (array) $user->roles ) || in_array( 'ticket-agent', (array) $user->roles ) ) { ?>
+								<div class="ticket-author">
+									<?php echo '<i class="ns-icon-users"></i> '. get_user_meta($author->ID, 'company_name', true); ?>
+								</div>																			
+							<?php } ?>
+						</div>
+
+					</div>
+					
+					<div class="ns-row ticket-meta" style="border-top: 0.5px solid rgba(0,0,0,.1);">
 						<div class="ns-col-sm-4 ns-col-xs-4">
-							<?php if ( $get_internal_reference_number ) { ?>
 								<p>
 									<strong><?php _e( 'Request or reference number', 'nanosupport' ); ?>:</strong><br>
-									<?php echo esc_attr( $get_internal_reference_number ); ?>
+									<?php if ( $get_internal_reference_number ) { ?>
+										<?php echo esc_attr( $get_internal_reference_number ); ?>
+									<?php } //endif ?>
 								</p>
-							<?php } //endif ?>
 						</div>
 						
 						<div class="ns-col-sm-4 ns-col-xs-4">
-							<?php if ( $get_internal_reference_establishment ) { ?>
 								<p>
 									<strong><?php _e( 'Facility Name', 'nanosupport' ); ?>:</strong><br>
-									<?php echo esc_attr( $get_internal_reference_establishment ); ?>
+									<?php if ( $get_internal_reference_establishment ) { ?>
+										<?php echo esc_attr( $get_internal_reference_establishment ); ?>
+									<?php } //endif ?>
 								</p>
-							<?php } //endif ?>
 						</div>
 						
 						<div class="ns-col-sm-4 ns-col-xs-4">
-							<?php if ( $get_internal_reference_name ) { ?>
 								<p>
 									<strong><?php _e( 'Responsible for the RMA', 'nanosupport' ); ?>:</strong><br>
-									<?php echo esc_attr( $get_internal_reference_name ); ?>
+									<?php if ( $get_internal_reference_name ) { ?>
+										<?php echo esc_attr( $get_internal_reference_name ); ?>
+									<?php } //endif ?>
 								</p>
-							<?php } //endif ?>
 						</div>
 
 					</div> <!-- /.ns-row -->
@@ -208,35 +237,28 @@ $get_internal_reference_name = get_post_meta( get_the_ID(), '_ns_ticket_internal
 					</a>
 					<?php edit_post_link( '<i class="dashicons dashicons-edit" title="'. esc_attr__('Edit the Ticket', 'nanosupport') .'"></i> <span class="screen-reader-only">'. esc_attr__('Edit the Ticket', 'nanosupport') .'</span>', '', '', get_the_ID() ); ?>
 				</div>
+
 				<div class="ns-col-sm-11 ns-col-xs-11 on-print-wide" style="border-top: 0.5px solid rgba(0,0,0,.1);">
 					<div class="ns-row ticket-meta">
-					<?php 
-					$get_term_shipping = get_term_meta($term_list[0]->term_id, 'meta_shipping', true);
-						if ( $get_term_shipping == 1 ) { ?>					
-						<?php if ( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ) ) : ?>
-							<div class="ns-col-sm-6 ns-col-xs-11">
+						<?php 
+							$get_term_shipping = get_term_meta($term_list[0]->term_id, 'meta_shipping', true); ?>
+							<div class="ns-col-sm-6 ns-col-xs-6">
+							<?php if ( $get_term_shipping == 1 ) { ?>					
 								<p>
 									<strong><?php _e( 'Tracking Number', 'nanosupport' ); ?>:</strong><br>
-									<?php echo get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ); ?>
+									<?php if ( get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ) ) : ?>
+										<?php echo get_post_meta( get_the_ID(), '_ns_ticket_traking_number', true ); ?>
+									<?php endif; ?>
+								</p>
+							<?php } ?>
+							</div>
+
+							<div class="ns-col-sm-6 ns-col-xs-6">
+								<p>
+									<strong><?php _e( 'Return adresse', 'nanosupport' ); ?>:</strong><br>
+									<?php echo nl2br( get_post_meta( get_the_ID(), '_ns_ticket_return_adresse', true )); ?>
 								</p>
 							</div>
-						<?php endif; ?>
-						<?php } ?>
-						<div class="ns-col-sm-6 ns-col-xs-11" style="text-align: center;">
-							<?php $user = wp_get_current_user(); ?>
-								<?php if ( in_array( 'administrator', (array) $user->roles ) || in_array( 'ticket-agent', (array) $user->roles ) ) { ?>
-									<div class="ticket-author">
-										<?php
-										$author = get_user_by( 'id', $post->post_author );
-										echo '<i class="ns-icon-user"></i> '. $author->display_name; ?></br>
-										<?php echo '<i class="ns-icon-users"></i> '. get_user_meta($author->ID, 'company_name', true); ?>
-									</div>																			
-							<?php } ?>
-							<p>
-								<strong><?php _e( 'Return adresse', 'nanosupport' ); ?>:</strong><br>
-								<?php echo nl2br( get_post_meta( get_the_ID(), '_ns_ticket_return_adresse', true )); ?>
-							</p>
-						</div>
 					</div> <!-- /.ns-row -->
 				</div>
 					

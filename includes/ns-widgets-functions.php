@@ -4,11 +4,16 @@
  */
 class ns_comment_widget extends WP_Widget {
  
- 
-    /** constructor -- name this the same as the class above */
-    function ns_comment_widget() {
-        parent::WP_Widget(false, $name = 'ns_comment Text Widget');	
-    }
+   	/**
+	 * Register widget with WordPress.
+	 */
+	function __construct() {
+		parent::__construct(
+			'ns_comment_widget', // Base ID
+			esc_html__( 'Comment Widget', 'text_domain' ), // Name
+			array( 'description' => esc_html__( 'A Foo Widget', 'text_domain' ), ) // Args
+		);
+	}
  
     /** @see WP_Widget::widget -- do not rename this */
     function widget($args, $instance) {	
@@ -29,7 +34,7 @@ class ns_comment_widget extends WP_Widget {
                                 if( current_user_can('administrator') || current_user_can('ticket-agent') ) {
                                     $query = array(
                                         'post_type' 	=> 'nanosupport',
-                                        'posts_per_page' => -1,
+                                        'posts_per_page' => 1000,
                                         'order'     	=> 'DESC',
                                         'orderby'       => 'modified',
                                         'comment_count' => array(
@@ -42,7 +47,7 @@ class ns_comment_widget extends WP_Widget {
                                 } else {
                                     $query = array(
                                         'post_type' 	=> 'nanosupport',
-                                        'posts_per_page' => -1,
+                                        'posts_per_page' => 500,
                                         'author'        =>  $current_user->ID,
                                         'order'     	=> 'DESC',
                                         'orderby'       => 'modified',
@@ -203,5 +208,7 @@ class ns_comment_widget extends WP_Widget {
  
  
 } // end class ns_comment_widget
-add_action('widgets_init', create_function('', 'return register_widget("ns_comment_widget");'));
+// add_action('widgets_init', create_function('', 'return register_widget("ns_comment_widget");'));
+add_action( 'widgets_init', function(){register_widget( 'ns_comment_widget' );
+});
 ?>

@@ -294,6 +294,9 @@ include_once 'includes/class-ecommerce.php';
 /** Handling emails **/
 include_once 'includes/ns-email-functions.php';
 
+/** Cron Jobs **/
+include_once 'includes/ns-cron-functions.php';
+
 /** Shortcode: Alternative Adresse **/
 include_once 'includes/shortcodes/ns-alternative-adresse.php';
 /** Shortcode: Support Desk **/

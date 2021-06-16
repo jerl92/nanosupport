@@ -55,7 +55,7 @@ function ns_register_cpt_nanosupport() {
         'menu_position'			=> 29,
         'show_in_nav_menus'		=> false,
         'publicly_queryable'	=> true,
-        'exclude_from_search'	=> false,
+        'exclude_fr '	        => false,
         'has_archive'			=> false,
         'query_var'				=> true,
         'can_export'			=> true,
@@ -341,6 +341,9 @@ function ns_populate_custom_columns( $column, $post_id ) {
             break;
         case 'created_date' :
             echo get_the_date();
+            echo '<br>';
+            $post = get_post( $post_id );
+            echo date( 'h:i A', strtotime( $post->post_date ) );
             break;
 
     }

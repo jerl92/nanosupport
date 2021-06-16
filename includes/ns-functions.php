@@ -378,7 +378,7 @@ $ns_errors[]   = esc_html__( 'Sorry, you need to chose a from factor.', 'nanosup
         add_post_meta( $ticket_post_id, '_ns_ticket_internal_reference_name', $_POST['ns_ticket_internal_reference_name'] );
         add_post_meta( $ticket_post_id, 'ns_internal_rma_number', esc_attr( $ticket_post_id ) );
 
-        add_post_meta( $ticket_post_id, '_ns_ip_user', esc_attr( $_SERVER['REMOTE_ADDR'] ) );
+        add_post_meta( $ticket_post_id, '_ns_ip_user', esc_attr( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
 
         //if ns_ticket_return_adresse is not used take default adresse from profil.
         $userdata = get_userdata($user_id);
@@ -663,6 +663,17 @@ if( ! function_exists( 'get_nanosupport_response_form' ) ) :
                 echo '&nbsp;<a class="ns-btn ns-btn-sm ns-btn-warning" href="'. wp_nonce_url( $reopen_url, 'reopen-ticket' ) .'#write-message"><i class="ns-icon-repeat"></i>&nbsp;';
                     esc_html_e( 'Reopen Ticket', 'nanosupport' );
                 echo '</a>';
+            echo '</div>';
+
+            // and don't display the form
+            return;
+        }
+
+        // For solved tickets, display a way to reOpen the ticket
+        if( 'resolu-faute-dinactivite' === $ticket_meta['status']['value'] && ! ( isset( $_GET['reopen'] ) && wp_verify_nonce( $_GET['_wpnonce'], 'reopen-ticket' ) ) ) {
+            $reopen_url = add_query_arg( 'reopen', '', get_the_permalink() );
+            echo '<div class="ns-alert ns-alert-success" role="alert">';
+                echo esc_html__( 'This ticket is inactive.', 'nanosupport' );
             echo '</div>';
 
             // and don't display the form
