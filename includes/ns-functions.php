@@ -378,8 +378,6 @@ $ns_errors[]   = esc_html__( 'Sorry, you need to chose a from factor.', 'nanosup
         add_post_meta( $ticket_post_id, '_ns_ticket_internal_reference_name', $_POST['ns_ticket_internal_reference_name'] );
         add_post_meta( $ticket_post_id, 'ns_internal_rma_number', esc_attr( $ticket_post_id ) );
 
-        add_post_meta( $ticket_post_id, '_ns_ip_user', esc_attr( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
-
         //if ns_ticket_return_adresse is not used take default adresse from profil.
         $userdata = get_userdata($user_id);
         $userdata_adresse = get_user_meta($userdata->ID, 'adresse', true);

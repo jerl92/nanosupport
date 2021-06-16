@@ -470,17 +470,6 @@ function ns_control_specifics() {
                     </div> <!-- /.ns-field -->
                 </div> <!-- /.ns-box -->
 
-                <div class="ns-head-col">
-                    <span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'IP adresse', 'nanosupport' );
-                    echo ns_tooltip( 'ns-ticket-status-tooltip', esc_html__( 'User IP adresse', 'nanosupport' ), 'left' );
-                    ?>
-                </div>
-                <div class="ns-body-col">
-                    <div class="ns-field">
-                        <input type="text" class="ns-field-item" name="ns_ticket_ip_user" id="ns_ticket_ip_user ns-ticket-status" rows="5" value="<?php echo esc_html( $_ns_ticket_ip_user ); ?>" readonly></input>
-                    </div> <!-- /.ns-field -->
-                </div> <!-- /.ns-box -->
-
             </div>
 
             <?php
